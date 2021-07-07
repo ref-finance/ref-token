@@ -25,13 +25,14 @@ pub struct Contract {
 #[near_bindgen]
 impl Contract {
     #[init]
-    pub fn new(owner: ValidAccountId, total_supply: Balance) -> Self {
+    pub fn new(owner: ValidAccountId, total_supply: U128) -> Self {
         let mut contract = Contract {
             ft: FungibleToken::new(b"a".to_vec()),
         };
+        let amount: Balance = total_supply.into();
         contract.ft.internal_register_account(owner.as_ref());
-        contract.ft.internal_deposit(owner.as_ref() , total_supply);
-        log!("Deposit {} token to {}", total_supply, owner);
+        contract.ft.internal_deposit(owner.as_ref() , amount);
+        log!("Deposit {} token to {}", amount, owner);
         contract
     }
 }

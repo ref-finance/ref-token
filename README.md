@@ -32,5 +32,5 @@ FungibleTokenMetadata {
 
 ### initialize
 ```shell
-near call $TOKEN_ID new '{"owner": "aaa", "total_supply": "100000000000000000000000000"}' --account_id=$TOKEN_ID
+near call $TOKEN_ID new '{"owner": "u1.testnet", "total_supply": "100000000000000000000000000"}' --account_id=$TOKEN_ID
 ```
