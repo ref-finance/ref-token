@@ -24,7 +24,7 @@ FungibleTokenMetadata {
     name: String::from("Ref Finance Token"),
     symbol: String::from("REF"),
     // see code for the detailed icon content
-    icon: Some(String::from("data:image/svg+xml;base64,PHN2ZyBpZD0......Zz4=")),
+    icon: Some(String::from("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0i......=")),
     reference: None,
     reference_hash: None,
     decimals: 18,
@@ -32,6 +32,7 @@ FungibleTokenMetadata {
 ```
 
 ### initialize
+release 100_000_000 token to u1.testnet as total supply.
 ```shell
 near call $TOKEN_ID new '{"owner": "u1.testnet", "total_supply": "100000000000000000000000000"}' --account_id=$TOKEN_ID
 ```
