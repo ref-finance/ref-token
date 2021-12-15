@@ -5,7 +5,7 @@
 You can build release version by running next scripts inside each contract folder:
 
 ```
-./build.sh
+source ./build_docker.sh
 ```
 
 ### Deploying to TestNet
