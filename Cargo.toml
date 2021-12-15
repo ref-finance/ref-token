@@ -1,22 +1,16 @@
-[package]
-name = "ref_token"
-version = "1.0.0"
-authors = ["Marco <sun.dsk1@gmail.com>"]
-edition = "2018"
+[workspace]
+members = [
+    "./ref-token",
+    "./xref-token",
+    "./test-token"
+]
 
-[lib]
-crate-type = ["cdylib", "rlib"]
-
-[dependencies]
-near-sdk = "3.1.0"
-near-contract-standards = "3.1.0"
-
-[dev-dependencies]
-near-sdk-sim = "3.1.0"
 
 [profile.release]
-codegen-units=1
+codegen-units = 1
+# s = optimize for binary size ("z" would additionally turn off loop vectorization)
 opt-level = "z"
+# link time optimization
 lto = true
 debug = false
 panic = "abort"
