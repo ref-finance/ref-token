@@ -12,7 +12,12 @@ impl Contract {
         // check account has registered
         assert!(self.ft.accounts.contains_key(account_id), "Account not registered.");
         
-        let minted = (U256::from(amount) * U256::from(self.ft.total_supply) / U256::from(self.locked_token_amount)).as_u128();
+        let mut minted = amount;
+        if self.ft.total_supply != 0 {
+            assert!(self.locked_token_amount > 0, "ERR_INTERNAL");
+            minted = (U256::from(amount) * U256::from(self.ft.total_supply) / U256::from(self.locked_token_amount)).as_u128();
+        }
+        
         assert!(minted > 0, "ERR_STAKE_TOO_SMALL");
 
         self.locked_token_amount += amount;
@@ -59,6 +64,8 @@ impl Contract {
         assert_one_yocto();
         let account_id = env::predecessor_account_id();
         let amount: Balance = amount.into();
+
+        assert!(self.ft.total_supply > 0, "ERR_EMPTY_TOTAL_SUPPLY");
         let unlocked = (U256::from(amount) * U256::from(self.locked_token_amount) / U256::from(self.ft.total_supply)).as_u128();
 
         self.ft.internal_withdraw(&account_id, amount);

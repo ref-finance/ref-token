@@ -36,6 +36,11 @@ impl Contract {
 
     // get the X-REF / REF price in decimal 8
     pub fn get_virtual_price(&self) -> U128 {
-        (self.locked_token_amount * 100_000_000 / self.ft.total_supply).into()
+        if self.ft.total_supply == 0 {
+            100_000_000.into()
+        } else {
+            (self.locked_token_amount * 100_000_000 / self.ft.total_supply).into()
+        }
+        
     }
 }
