@@ -39,7 +39,7 @@ impl Contract {
         if self.ft.total_supply == 0 {
             100_000_000.into()
         } else {
-            (self.locked_token_amount * 100_000_000 / self.ft.total_supply).into()
+            ((self.locked_token_amount + self.try_distribute_reward(env::block_timestamp())) * 100_000_000 / self.ft.total_supply).into()
         }
         
     }
