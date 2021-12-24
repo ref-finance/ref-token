@@ -2,6 +2,7 @@
 members = [
     "./ref-token",
     "./xref-token",
+    "./referendum",
     "./test-token"
 ]
 
