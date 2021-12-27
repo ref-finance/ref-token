@@ -2,10 +2,10 @@
 * REF referendum contract
 *
 */
-use near_sdk::collections::{LookupMap, UnorderedMap};
+use near_sdk::collections::LookupMap;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::json_types::{ValidAccountId};
-use near_sdk::{env, near_bindgen, AccountId, Balance, PanicOnDefault, PromiseOrValue, Timestamp, BorshStorageKey};
+use near_sdk::{env, near_bindgen, AccountId, Balance, PanicOnDefault, Timestamp, BorshStorageKey};
 
 use crate::session::SessionInfo;
 use crate::account::VAccount;
@@ -15,6 +15,8 @@ mod session;
 mod account;
 mod utils;
 mod owner;
+mod storage_impl;
+mod views;
 
 near_sdk::setup_alloc!();
 

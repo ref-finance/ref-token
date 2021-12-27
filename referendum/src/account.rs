@@ -50,7 +50,7 @@ impl Account {
     }
 
     pub(crate) fn unlock(&mut self, cur_session_id: u32) -> Balance {
-        if cur_session_id >= self.unlocking_session_id {
+        if cur_session_id > self.unlocking_session_id {
             let amount =  self.locking_amount;
             self.locking_amount = 0;
             self.ballot_amount = 0;
@@ -67,17 +67,39 @@ impl Account {
 impl Contract {
     /// lasts = 0 means append
     fn internal_lock(&mut self, account_id: &AccountId, locking_amount: Balance, lasts: u32) {
-        // TODO: 
-        // calculate ballots
-        // locate end_session (array index) and end_session_id
-        // verify append has valid running locking
-        // vierify new lock has no running locking
-        let ballot_amount: Balance = 0;
-        let end_session: usize = 0;
-        let end_session_id: u32 = 0;
+        let current_state = self.data();
+        let mut account = current_state.accounts.get(account_id).map(|va| va.into_current()).expect("ERR_USER_NOT_REGISTER");
+        let current_session_info = current_state.sessions[current_state.cur_session];
 
+        if lasts == 0 {
+            // verify append has valid running locking
+            assert!(account.locking_amount != 0, "Append stake: ERR_ACCOUNT_HAS_NO_RUNNING_LOCKING");
+            assert!(account.unlocking_session_id >= current_session_info.session_id, "Append stake: ERR_BALLOTS_EXPIRE_NOT_UNLOCK");
+        }else{
+            // vierify new lock has no running locking
+            assert!(account.locking_amount == 0, "New stake: ERR_ACCOUNT_HAS_VALID_RUNNING_LOCKING_OR_BALLOTS_EXPIRE_NOT_UNLOCK");
+        }
+
+        let mut end_session: usize = 0;
+        let locking_period = if lasts == 0 {account.unlocking_session_id - current_session_info.session_id + 1} else { lasts };
+
+        // calculate ballots
+        let full_session_ballots = locking_amount * (locking_period - 1) as u128;
+        let current_session_remaining_days = nano_to_day(SESSION_INTERMAL) - 
+            nano_to_day(env::block_timestamp() - current_state.genesis_timestamp - current_session_info.session_id as u64 * SESSION_INTERMAL);
+        let part_session_ballots = (U256::from(locking_amount) * U256::from(current_session_remaining_days) / U256::from(nano_to_day(SESSION_INTERMAL))).as_u128();
+        let ballot_amount = full_session_ballots + part_session_ballots;
+
+        // locate end_session (array index) and end_session_id
+        let end_session_id: u32 = if lasts == 0 {account.unlocking_session_id} else {current_session_info.session_id + (locking_period - 1)};
+        for i in 0..MAX_SESSIONS {
+            let idx = (i + current_state.cur_session) % MAX_SESSIONS;
+            if current_state.sessions[idx].session_id == end_session_id {
+                end_session = idx;
+                break;
+            }
+        }
         // update the account
-        let mut account = self.data().accounts.get(account_id).map(|va| va.into_current()).expect("ERR_USER_NOT_REGISTER");
         account.add_locking(locking_amount, ballot_amount, end_session_id);
         self.data_mut().accounts.insert(account_id, &account.into());
         // update the session
@@ -85,16 +107,30 @@ impl Contract {
         // update the ballot
         self.data_mut().cur_total_ballot += ballot_amount;
         // TODO: add log
+        log!(
+            "User {} {} {} ballots,  unlocking_session_id : {}",
+            account_id,
+            if lasts == 0 {"append stake"} else {"new stake"},
+            ballot_amount,
+            end_session_id
+        );
     }
 
     fn internal_unlock(&mut self, account_id: &AccountId) -> Balance {
-        // TODO: get cur session id
-        let cur_session_id = 0; 
-        let mut account = self.data().accounts.get(account_id).map(|va| va.into_current()).expect("ERR_USER_NOT_REGISTER");
+        let current_state = self.data();
+        let cur_session_id = current_state.sessions[current_state.cur_session].session_id; 
+        let mut account = current_state.accounts.get(account_id).map(|va| va.into_current()).expect("ERR_USER_NOT_REGISTER");
         let amount = account.unlock(cur_session_id);
         self.data_mut().accounts.insert(account_id, &account.into());
-        // TODO: call withdraw to send unlock token back to user
         amount
+    }
+
+    pub(crate) fn internal_register_account(&mut self, account_id: &AccountId) {
+        self.data_mut().accounts.insert(account_id, &Account{
+            locking_amount: 0,
+            ballot_amount: 0,
+            unlocking_session_id: 0,
+        }.into());
     }
 }
 

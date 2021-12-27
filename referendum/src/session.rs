@@ -3,9 +3,7 @@
 use crate::*;
 
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::{Balance, Timestamp};
-use near_sdk::serde::{Deserialize, Serialize};
-use near_sdk::json_types::{U128};
+use near_sdk::Balance;
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Copy, Default)]
 pub struct SessionInfo {
@@ -23,6 +21,9 @@ impl Contract {
         let head = self.data().cur_session;
         if self.data().sessions[1].session_id == 0 {
             // TODO: need initiate all sessions according to genesis timestamp
+            for i in 0..MAX_SESSIONS {
+                self.data_mut().sessions[i].session_id = cur_session_id as u32 + i as u32;
+            }
         } else {
             // checkpoint logic
             for i in 0..MAX_SESSIONS {
