@@ -9,9 +9,11 @@ use near_sdk::{env, near_bindgen, AccountId, Balance, PanicOnDefault, PromiseOrV
 
 use crate::session::SessionInfo;
 use crate::account::VAccount;
+use crate::proposals::VersionedProposal;
 use crate::utils::*;
 
 mod session;
+mod proposals;
 mod account;
 mod utils;
 mod owner;
@@ -20,7 +22,9 @@ near_sdk::setup_alloc!();
 
 #[derive(BorshStorageKey, BorshSerialize)]
 pub enum StorageKeys {
-    Account,
+    Accounts,
+    Proposals,
+    AccountProposals,
 }
 
 #[derive(BorshDeserialize, BorshSerialize)]
@@ -45,6 +49,12 @@ pub struct ContractData {
     cur_total_ballot: Balance,
 
     accounts: LookupMap<AccountId, VAccount>,
+
+    /// Last available id for the proposals.
+    pub last_proposal_id: u64,
+    /// Proposal map from ID to proposal information.
+    pub proposals: LookupMap<u64, VersionedProposal>,
+    pub lock_amount_per_proposal: Balance,
 }
 
 #[derive(BorshSerialize, BorshDeserialize)]
@@ -73,7 +83,10 @@ impl Contract {
                 sessions: [SessionInfo::default(); MAX_SESSIONS],
                 cur_session: 0,
                 cur_total_ballot: 0,
-                accounts: LookupMap::new(StorageKeys::Account),
+                accounts: LookupMap::new(StorageKeys::Accounts),
+                last_proposal_id: 0,
+                proposals: LookupMap::new(StorageKeys::Proposals),
+                lock_amount_per_proposal: DEFAULT_LOCK_NEAR_AMOUNT_FOR_PROPOSAL,
             }),
         }
     }
