@@ -6,8 +6,11 @@ use crate::utils::{ext_self, GAS_FOR_FT_TRANSFER, GAS_FOR_RESOLVE_TRANSFER, NO_D
 use near_contract_standards::fungible_token::receiver::FungibleTokenReceiver;
 use near_contract_standards::fungible_token::core_impl::ext_fungible_token;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::collections::LookupMap;
 use near_sdk::{Balance, AccountId, assert_one_yocto, PromiseOrValue, log, PromiseResult};
 use near_sdk::json_types::U128;
+
+use crate::proposals::Vote;
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub enum VAccount {
@@ -29,6 +32,12 @@ impl From<Account> for VAccount {
     }
 }
 
+#[derive(BorshSerialize, BorshDeserialize)]
+pub struct AccountVote {
+    pub vote: Vote,
+    pub amount: Balance,
+}
+
 /// Account information.
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct Account {
@@ -38,8 +47,8 @@ pub struct Account {
     pub ballot_amount: Balance,
     /// unlocking session id
     pub unlocking_session_id: u32,
-    // TODO: record proposal voting info, when ballot_amount changes, should update this one and global proposal vote info
-    // pub proposals: HashMap<proposal_id: u32, info: {Aye/Nay, Balance}>,
+    /// Record proposal voting info, when ballot_amount changes, should update this one and global proposal vote info
+    pub proposals: LookupMap<u64, AccountVote>,
 }
 
 impl Account {
@@ -59,7 +68,6 @@ impl Account {
         } else {
             0
         }
-        
     }
 }
 
@@ -130,7 +138,21 @@ impl Contract {
             locking_amount: 0,
             ballot_amount: 0,
             unlocking_session_id: 0,
+            proposals: LookupMap::new(StorageKeys::AccountProposals{
+                account_id: account_id.clone()
+            })
         }.into());
+    }
+    pub(crate) fn internal_vote(&mut self, account_id: &AccountId, proposal_id: u64, vote: &Vote) -> Balance {
+        let mut account = self.data().accounts.get(account_id).map(|va| va.into_current()).expect("ERR_USER_NOT_REGISTER");
+        assert!(!account.proposals.contains_key(&proposal_id), "ERR_ALREADY_VOTED");
+        let account_vote = AccountVote {
+            vote: vote.clone(),
+            amount: account.ballot_amount,
+        };
+        account.proposals.insert(&proposal_id, &account_vote);
+        self.data_mut().accounts.insert(account_id, &account.into());
+        account_vote.amount
     }
 }
 

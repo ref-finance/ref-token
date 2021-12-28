@@ -1,7 +1,9 @@
 //! Utils stores pub info 
 
 use near_sdk::json_types::U128;
-use near_sdk::{ext_contract, Gas, Timestamp};
+use near_sdk::{ext_contract, Gas, Timestamp, Balance};
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::serde::{Deserialize, Serialize};
 use uint::construct_uint;
 
 construct_uint! {
@@ -26,6 +28,38 @@ pub const SESSION_INTERMAL: u64 = 3600 * 24 * 30 * 1_000_000_000;
 pub const DEFAULT_GENESIS_OFFSET: u64 = 3600 * 24 * 30 * 1_000_000_000;
 
 pub const STORAGE_BALANCE_MIN_BOUND: u128 = 10_000_000_000_000_000_000_000;
+/// default locking amount is 10 near for each proposal
+pub const DEFAULT_LOCK_NEAR_AMOUNT_FOR_PROPOSAL: Balance = 10_000_000_000_000_000_000_000_000;
+
+
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(crate = "near_sdk::serde")]
+#[derive(BorshDeserialize, BorshSerialize)]
+#[cfg_attr(not(target_arch = "wasm32"), derive(Debug, PartialEq))]
+pub struct Rational {
+    numerator: u32,
+    denominator: u32,
+}
+
+impl Rational {
+
+    pub fn pass(&self, num: &Balance, denom: &Balance) -> bool {
+        // TODO: implement using U256 to judge num/denom >= self
+        true
+    }
+
+    pub fn is_valid(&self) -> bool {
+        self.numerator > 0 && self.denominator >= self.numerator
+    }
+}
+
+pub fn nano_to_sec(nano: Timestamp) -> u64 {
+    nano / 1_000_000_000
+}
+
+pub fn sec_to_nano(sec: u32) -> Timestamp {
+    sec as u64 * 1_000_000_000
+}
 
 #[ext_contract(ext_self)]
 pub trait Unlock {
