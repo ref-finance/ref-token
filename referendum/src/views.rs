@@ -3,6 +3,7 @@
 use crate::*;
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::json_types::U128;
+use std::convert::TryInto;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 #[serde(crate = "near_sdk::serde")]
@@ -12,6 +13,23 @@ pub struct ContractMetadata {
     pub genesis_timestamp: u64,
     pub cur_session: usize,
     pub cur_total_ballot: U128,
+    pub last_proposal_id: u64,
+    pub lock_amount_per_proposal: U128,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "near_sdk::serde")]
+pub struct ProposalInfo{
+    pub proposer: AccountId,
+    pub lock_amount: U128,
+    pub description: String,
+    pub vote_policy: proposals::VotePolicy,
+    pub kind: proposals::ProposalKind,
+    pub status: proposals::ProposalStatus,
+    pub vote_counts: [U128; 4],
+    pub session_id: u32,
+    pub start_offset: Timestamp,
+    pub lasts: Timestamp,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -63,6 +81,27 @@ impl Contract {
             genesis_timestamp: current_state.genesis_timestamp,
             cur_session: current_state.cur_session,
             cur_total_ballot: current_state.cur_total_ballot.into(),
+            last_proposal_id: current_state.last_proposal_id,
+            lock_amount_per_proposal: U128(current_state.lock_amount_per_proposal),
+        }
+    }
+
+    pub fn get_proposal_info(&self, proposal_idx: u64) -> ProposalInfo{
+        if let Some(VersionedProposal::Default(proposal)) = self.data().proposals.get(&proposal_idx){
+            ProposalInfo{
+                proposer: proposal.proposer,
+                lock_amount: U128(proposal.lock_amount),
+                description: proposal.description,
+                vote_policy: proposal.vote_policy,
+                kind: proposal.kind,
+                status: proposal.status,
+                vote_counts: proposal.vote_counts.map(|v| U128(v)),
+                session_id: proposal.session_id,
+                start_offset: proposal.start_offset,
+                lasts: proposal.lasts,
+            }
+        }else{
+            env::panic(b"Err_INVALID_PROPOSAL_IDX")
         }
     }
 

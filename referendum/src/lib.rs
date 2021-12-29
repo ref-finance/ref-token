@@ -2,7 +2,7 @@
 * REF referendum contract
 *
 */
-use near_sdk::collections::LookupMap;
+use near_sdk::collections::{LookupMap, Vector};
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::json_types::{ValidAccountId};
 use near_sdk::{env, near_bindgen, AccountId, Balance, PanicOnDefault, Timestamp, BorshStorageKey};
@@ -26,6 +26,7 @@ near_sdk::setup_alloc!();
 pub enum StorageKeys {
     Accounts,
     Proposals,
+    ProposalIdsInSession,
     AccountProposals {account_id: AccountId},
 }
 
@@ -43,6 +44,9 @@ pub struct ContractData {
 
     // maintains a global session circle array
     sessions: [SessionInfo; MAX_SESSIONS],
+
+    // each session contains proposal id array
+    proposal_ids_in_sessions: Vector<Vec<u64>>,
 
     // current session idx in sessions array
     cur_session: usize,
@@ -83,6 +87,7 @@ impl Contract {
                 locked_token: token_id.into(),
                 genesis_timestamp: env::block_timestamp() + DEFAULT_GENESIS_OFFSET,
                 sessions: [SessionInfo::default(); MAX_SESSIONS],
+                proposal_ids_in_sessions: Vector::new(StorageKeys::ProposalIdsInSession),
                 cur_session: 0,
                 cur_total_ballot: 0,
                 accounts: LookupMap::new(StorageKeys::Accounts),

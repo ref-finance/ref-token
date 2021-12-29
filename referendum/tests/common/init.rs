@@ -48,3 +48,23 @@ pub fn init_env(register_user: bool) -> (UserAccount, UserAccount, UserAccount, 
     }
     (root, owner, user, xref_contract, referendum_contract)
 }
+
+pub fn init_proposal_users(root: &UserAccount, xref_contract: &ContractAccount<TestToken>, referendum_contract: &ContractAccount<Referendum>) -> (UserAccount, UserAccount, UserAccount){
+    let proposal_user = root.create_user("proposal_user".to_string(), to_yocto("100"));
+    let vote_user1 = root.create_user("vote_user1".to_string(), to_yocto("100"));
+    let vote_user2 = root.create_user("vote_user2".to_string(), to_yocto("100"));
+
+    call!(proposal_user, xref_contract.storage_deposit(None, None), deposit = to_yocto("1")).assert_success();
+    call!(vote_user1, xref_contract.storage_deposit(None, None), deposit = to_yocto("1")).assert_success();
+    call!(vote_user2, xref_contract.storage_deposit(None, None), deposit = to_yocto("1")).assert_success();
+
+    call!(proposal_user, referendum_contract.storage_deposit(None, None), deposit = to_yocto("1")).assert_success();
+    call!(vote_user1, referendum_contract.storage_deposit(None, None), deposit = to_yocto("1")).assert_success();
+    call!(vote_user2, referendum_contract.storage_deposit(None, None), deposit = to_yocto("1")).assert_success();
+
+    call!(root, xref_contract.mint(proposal_user.valid_account_id(), to_yocto("100").into())).assert_success();
+    call!(root, xref_contract.mint(vote_user1.valid_account_id(), to_yocto("100").into())).assert_success();
+    call!(root, xref_contract.mint(vote_user2.valid_account_id(), to_yocto("100").into())).assert_success();
+
+    (proposal_user, vote_user1, vote_user2)
+}

@@ -18,6 +18,12 @@ pub enum VotePolicy {
     Absolute(Rational, Rational),
 }
 
+impl From<Vec<u8>> for VotePolicy {
+    fn from(content: Vec<u8>) -> Self {
+        VotePolicy::try_from_slice(&content).unwrap()
+    }
+}
+
 impl VotePolicy {
 
     /// the priority sequense is Remove, Fail, Pass
@@ -102,6 +108,17 @@ impl ProposalKind {
     }
 }
 
+impl From<&str> for ProposalKind {
+    fn from(kind: &str) -> Self {
+        match kind {
+            "vote" => {
+                ProposalKind::Vote
+            },
+            _ => env::panic(b"ERR_NO_INVALID_PROPOSAL_KIND")
+        }
+    }
+}
+
 /// Set of possible action to take.
 #[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Debug)]
 #[serde(crate = "near_sdk::serde")]
@@ -112,6 +129,23 @@ pub enum Action {
     VoteReject,
     /// Vote to remove given proposal or bounty (because it's spam).
     VoteRemove,
+}
+
+impl From<&str> for Action {
+    fn from(action: &str) -> Self {
+        match action {
+            "approve" => {
+                Action::VoteApprove
+            },
+            "reject" => {
+                Action::VoteReject
+            },
+            "remove" => {
+                Action::VoteRemove
+            },
+            _ => env::panic(b"ERR_NO_INVALID_ACTION_KIND")
+        }
+    }
 }
 
 impl Action {
@@ -231,6 +265,10 @@ impl Proposal {
     }
 }
 
+impl Contract {
+    
+}
+
 #[near_bindgen]
 impl Contract {
     /// Add proposal to this DAO.
@@ -246,12 +284,17 @@ impl Contract {
 
         // check and lock deposit
         let deposit_amount = env::attached_deposit();
-        assert!(deposit_amount <= self.data().lock_amount_per_proposal, "ERR_NOT_ENOUGH_LOCK_NEAR");
+        assert!(deposit_amount >= self.data().lock_amount_per_proposal, "ERR_NOT_ENOUGH_LOCK_NEAR");
         if deposit_amount > self.data().lock_amount_per_proposal {
             Promise::new(proposer.clone()).transfer(deposit_amount - self.data().lock_amount_per_proposal);
         }
 
         // TODO: check time validation, session_id gte cur_session_id, (session_id.begin_ts+start_offset+lasts) lt (session_id+1).begin_ts
+        let current_session_id = self.data().sessions[self.data().cur_session].session_id;
+        assert!(session_id >= current_session_id, "ERR_SESSION_ID_NEED_GE_CURRENT_SESSION_ID");
+        let base_timestamp = self.data().genesis_timestamp + SESSION_INTERMAL * session_id as u64;
+        assert!((base_timestamp + sec_to_nano(start_offset_sec)) > env::block_timestamp(), "ERR_PROPOSAL_START_TIME_NEED_GE_CURRENT_TIME");
+        assert!((base_timestamp + sec_to_nano(start_offset_sec + lasts_sec)) < base_timestamp + SESSION_INTERMAL, "ERR_PROPOSAL_END_TIME_NEED_LE_NEXT_SESSION_BEGIN_TIME");
 
         let ps = Proposal {
             proposer,

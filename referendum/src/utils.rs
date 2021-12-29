@@ -1,5 +1,7 @@
 //! Utils stores pub info 
 
+use std::ops::Mul;
+
 use near_sdk::json_types::U128;
 use near_sdk::{ext_contract, Gas, Timestamp, Balance};
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
@@ -44,8 +46,8 @@ pub struct Rational {
 impl Rational {
 
     pub fn pass(&self, num: &Balance, denom: &Balance) -> bool {
-        // TODO: implement using U256 to judge num/denom >= self
-        true
+        U256::from(*num).mul(U256::from(self.denominator)).
+            ge(&U256::from(self.numerator).mul(U256::from(*denom)))
     }
 
     pub fn is_valid(&self) -> bool {
