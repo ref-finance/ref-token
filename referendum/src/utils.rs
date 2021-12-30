@@ -12,7 +12,7 @@ construct_uint! {
     /// 256-bit unsigned integer.
     pub struct U256(4);
 }
-use crate::proposals::{VotePolicy, Vote};
+use crate::proposals::VotePolicy;
 
 /// Attach no deposit.
 pub const NO_DEPOSIT: u128 = 0;
@@ -54,6 +54,12 @@ pub const DEFAULT_VP_ABSOLUTE: VotePolicy = VotePolicy::Absolute(
 pub struct Rational {
     numerator: u32,
     denominator: u32,
+}
+
+impl From<Vec<u8>> for Rational {
+    fn from(content: Vec<u8>) -> Self {
+        Rational::try_from_slice(&content).unwrap()
+    }
 }
 
 impl Rational {

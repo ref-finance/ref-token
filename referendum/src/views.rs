@@ -3,7 +3,6 @@
 use crate::*;
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::json_types::U128;
-use std::convert::TryInto;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 #[serde(crate = "near_sdk::serde")]
@@ -102,6 +101,13 @@ impl Contract {
             }
         }else{
             env::panic(b"Err_INVALID_PROPOSAL_IDX")
+        }
+    }
+
+    pub fn get_proposal_ids_in_session(&self, session_id: u64) -> Vec<u64>{
+        match self.data().proposal_ids_in_sessions.get(session_id) {
+            Some(proposal_ids) => proposal_ids,
+            None => vec![]
         }
     }
 

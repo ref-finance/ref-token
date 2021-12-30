@@ -1,6 +1,8 @@
+#![allow(unused)] 
 use near_sdk_sim::{call, deploy, init_simulator, to_yocto, ContractAccount, UserAccount};
 use test_token::ContractContract as TestToken;
 use referendum::ContractContract as Referendum;
+use crate::*;
 
 near_sdk_sim::lazy_static_include::lazy_static_include_bytes! {
     TEST_WASM_BYTES => "../res/test_token.wasm",
@@ -40,10 +42,12 @@ pub fn init_env(register_user: bool) -> (UserAccount, UserAccount, UserAccount, 
         let current_timestamp = root.borrow_runtime().current_block().block_timestamp;
         call!(
             owner,
-            referendum_contract.modify_genesis_timestamp(current_timestamp)
+            referendum_contract.modify_genesis_timestamp(nano_to_sec(current_timestamp) + 10)
         )
         .assert_success();
         
+        root.borrow_runtime_mut().cur_block.block_timestamp = view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp +  24 * 1_000_000_000;
+
         call!(user, referendum_contract.storage_deposit(None, None), deposit = to_yocto("1")).assert_success();
     }
     (root, owner, user, xref_contract, referendum_contract)

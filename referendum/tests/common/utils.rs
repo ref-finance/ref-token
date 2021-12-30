@@ -88,6 +88,10 @@ pub fn get_error_status(r: &ExecutionResult) -> String {
     format!("{:?}", r.promise_errors()[0].as_ref().unwrap().status())
 }
 
+pub fn nano_to_sec(nano: u64) -> u32 {
+    (nano / 1_000_000_000) as u32
+}
+
 pub fn sec_to_nano(sec: u32) -> u64 {
     sec as u64 * 1_000_000_000
 }

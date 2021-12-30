@@ -5,7 +5,7 @@
 use near_sdk::collections::{LookupMap, Vector};
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::json_types::{ValidAccountId};
-use near_sdk::{env, near_bindgen, AccountId, Balance, PanicOnDefault, PromiseOrValue, Timestamp, BorshStorageKey};
+use near_sdk::{env, near_bindgen, AccountId, Balance, PanicOnDefault, Timestamp, BorshStorageKey};
 use proposals::VotePolicy;
 
 use crate::session::SessionInfo;

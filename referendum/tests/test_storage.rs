@@ -23,9 +23,11 @@ fn test_storage_deposit_normal(){
     let current_timestamp = root.borrow_runtime().current_block().block_timestamp;
     call!(
         owner,
-        referendum_contract.modify_genesis_timestamp(current_timestamp)
+        referendum_contract.modify_genesis_timestamp(nano_to_sec(current_timestamp) + 10)
     )
     .assert_success();
+
+    root.borrow_runtime_mut().cur_block.block_timestamp = view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp + 24 * 1_000_000_000;
 
     let orig_user_balance = user.account().unwrap().amount;
     call!(user, referendum_contract.storage_deposit(None, None), deposit = to_yocto("0.01")).assert_success();
@@ -41,9 +43,11 @@ fn test_storage_deposit_repeat(){
     let current_timestamp = root.borrow_runtime().current_block().block_timestamp;
     call!(
         owner,
-        referendum_contract.modify_genesis_timestamp(current_timestamp)
+        referendum_contract.modify_genesis_timestamp(nano_to_sec(current_timestamp) + 10)
     )
     .assert_success();
+
+    root.borrow_runtime_mut().cur_block.block_timestamp = view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp + 24 * 1_000_000_000;
 
     let orig_user_balance = user.account().unwrap().amount;
     call!(user, referendum_contract.storage_deposit(None, None), deposit = to_yocto("0.01")).assert_success();
@@ -63,9 +67,11 @@ fn test_storage_deposit_refund(){
     let current_timestamp = root.borrow_runtime().current_block().block_timestamp;
     call!(
         owner,
-        referendum_contract.modify_genesis_timestamp(current_timestamp)
+        referendum_contract.modify_genesis_timestamp(nano_to_sec(current_timestamp) + 10)
     )
     .assert_success();
+
+    root.borrow_runtime_mut().cur_block.block_timestamp = view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp + 24 * 1_000_000_000;
 
     let orig_user_balance = user.account().unwrap().amount;
     call!(user, referendum_contract.storage_deposit(None, None), deposit = to_yocto("1")).assert_success();

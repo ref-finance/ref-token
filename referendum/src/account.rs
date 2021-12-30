@@ -109,12 +109,25 @@ impl Contract {
         }
         // update the account
         account.add_locking(locking_amount, ballot_amount, end_session_id);
-        self.data_mut().accounts.insert(account_id, &account.into());
         // update the session
         self.data_mut().sessions[end_session].expire_amount += ballot_amount;
         // update the ballot
         self.data_mut().cur_total_ballot += ballot_amount;
-        // TODO: add log
+
+        if lasts == 0{
+            if let Some(proposal_ids) = self.data().proposal_ids_in_sessions.get(current_session_info.session_id as u64){
+                for proposal_id in proposal_ids{
+                    if let Some(mut account_vote) = account.proposals.get(&proposal_id){
+                        let append_amount =  self.internal_append_vote(proposal_id, &account_vote.vote, &ballot_amount);
+                        account_vote.amount += append_amount;
+                        account.proposals.insert(&proposal_id, &account_vote);
+                    }
+                }
+            }
+        }
+        
+        self.data_mut().accounts.insert(account_id, &account.into());
+        
         log!(
             "User {} {} {} ballots,  unlocking_session_id : {}",
             account_id,

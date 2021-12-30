@@ -1,9 +1,5 @@
-use std::collections::HashMap;
-
-use near_contract_standards::fungible_token::core_impl::ext_fungible_token;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::json_types::{Base64VecU8, U128, U64};
-use near_sdk::{log, AccountId, Balance, Gas, PromiseOrValue, Timestamp, Promise};
+use near_sdk::{log, AccountId, Balance, Timestamp, Promise};
 use near_sdk::serde::{Deserialize, Serialize};
 
 use crate::*;
@@ -15,6 +11,20 @@ use crate::utils::Rational;
 pub enum PolicyType {
     Relative = 0x0,
     Absolute = 0x1,
+}
+
+impl From<u8> for PolicyType {
+    fn from(tp: u8) -> Self {
+        match tp {
+            0 => {
+                PolicyType::Relative
+            },
+            1 => {
+                PolicyType::Absolute
+            },
+            _ => env::panic(b"ERR_INVALID_POLICY_TYPE")
+        }
+    }
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone)]
@@ -120,7 +130,7 @@ impl From<&str> for ProposalKind {
             "vote" => {
                 ProposalKind::Vote
             },
-            _ => env::panic(b"ERR_NO_INVALID_PROPOSAL_KIND")
+            _ => env::panic(b"ERR_INVALID_PROPOSAL_KIND")
         }
     }
 }
@@ -149,7 +159,7 @@ impl From<&str> for Action {
             "remove" => {
                 Action::VoteRemove
             },
-            _ => env::panic(b"ERR_NO_INVALID_ACTION_KIND")
+            _ => env::panic(b"ERR_INVALID_ACTION_KIND")
         }
     }
 }
@@ -274,7 +284,29 @@ impl Proposal {
 }
 
 impl Contract {
-    
+    pub(crate) fn internal_append_vote(&mut self, id:u64, vote: &Vote, amount: &Balance) -> Balance{
+        let mut proposal: Proposal = self.data().proposals.get(&id).expect("ERR_NO_PROPOSAL").into();
+        let cur_status = proposal.get_cur_status(self.data().genesis_timestamp);
+        proposal.status = cur_status;
+        
+        // check proposal is inprogress
+        match proposal.status{
+            ProposalStatus::InProgress => {
+                // update and judge proposal result
+                proposal.update_votes(&vote, amount, &self.data().cur_total_ballot, &self.data().nonsense_threshold);
+                if proposal.status == ProposalStatus::Approved || proposal.status == ProposalStatus::Rejected {
+                    // return lock near to proposer
+                    Promise::new(proposal.proposer.clone()).transfer(proposal.lock_amount);
+                    proposal.lock_amount = 0;
+                }
+                self.data_mut().proposals.insert(&id, &VersionedProposal::Default(proposal));
+                *amount
+            },
+            _ => {
+                0
+            }
+        }
+    }
 }
 
 #[near_bindgen]
@@ -319,6 +351,16 @@ impl Contract {
         self.data_mut().proposals.insert(&id, &VersionedProposal::Default(ps));
         self.data_mut().last_proposal_id += 1;
 
+        let proposal_ids_in_sessions_len = self.data().proposal_ids_in_sessions.len();
+        if proposal_ids_in_sessions_len <= session_id as u64{
+            for _ in proposal_ids_in_sessions_len..session_id as u64 + 1 {
+                self.data_mut().proposal_ids_in_sessions.push(&vec![]);
+            }
+        }
+        let mut proposal_ids = self.data().proposal_ids_in_sessions.get( session_id as u64).unwrap();
+        proposal_ids.push(id as u64);
+        self.data_mut().proposal_ids_in_sessions.replace(session_id as u64, &proposal_ids);
+
         id
     }
 
@@ -335,6 +377,11 @@ impl Contract {
                     Promise::new(proposal.proposer.clone()).transfer(proposal.lock_amount);
                 }
                 self.data_mut().proposals.remove(&id);
+
+                let mut proposal_ids = self.data().proposal_ids_in_sessions.get( proposal.session_id as u64).unwrap();
+                proposal_ids.retain(|&x| x != id);
+                self.data_mut().proposal_ids_in_sessions.replace(proposal.session_id as u64, &proposal_ids);
+        
                 true
             },
             _ => false,
