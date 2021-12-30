@@ -4,6 +4,7 @@ use near_sdk::json_types::U128;
 use near_sdk::{ext_contract, Gas, Balance, Timestamp};
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::serde::{Deserialize, Serialize};
+use crate::proposals::{VotePolicy, Vote};
 
 /// Attach no deposit.
 pub const NO_DEPOSIT: u128 = 0;
@@ -23,6 +24,18 @@ pub const DEFAULT_GENESIS_OFFSET: u64 = 3600 * 24 * 30 * 1_000_000_000;
 
 /// default locking amount is 10 near for each proposal
 pub const DEFAULT_LOCK_NEAR_AMOUNT_FOR_PROPOSAL: Balance = 10_000_000_000_000_000_000_000_000;
+
+pub const DEFAULT_NONSENSE_THRESHOLD: Rational = Rational {numerator: 1, denominator: 2};
+
+pub const DEFAULT_VP_RELATIVE: VotePolicy = VotePolicy::Relative(
+    Rational {numerator: 33, denominator: 100}, 
+    Rational {numerator: 1, denominator: 2}
+);
+
+pub const DEFAULT_VP_ABSOLUTE: VotePolicy = VotePolicy::Absolute(
+    Rational {numerator: 45, denominator: 100}, 
+    Rational {numerator: 33, denominator: 100}
+);
 
 
 #[derive(Serialize, Deserialize, Clone)]

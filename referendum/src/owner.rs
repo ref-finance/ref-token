@@ -1,6 +1,8 @@
 //! Implement all the relevant logic for owner of this contract.
 
+use near_sdk::json_types::U128;
 use crate::*;
+
 
 #[near_bindgen]
 impl Contract {
@@ -15,13 +17,48 @@ impl Contract {
         self.data().owner_id.clone()
     }
 
-    pub fn modify_genesis_timestamp(&mut self, genesis_timestamp: u64) {
+    pub fn modify_genesis_timestamp(&mut self, genesis_timestamp_in_sec: u32) {
         self.assert_owner();
+        let genesis_ts = sec_to_nano(genesis_timestamp_in_sec);
         assert!(
             env::block_timestamp() <= self.data().genesis_timestamp,
             "ERR_HAS_LAUNCHED"
         );
-        self.data_mut().genesis_timestamp = genesis_timestamp;
+        assert!(genesis_ts > env::block_timestamp(), "ERR_ILLEGAL_GENESIS_TIME");
+        self.data_mut().genesis_timestamp = genesis_ts;
+    }
+
+    pub fn modify_endorsement_amount(&mut self, amount: U128) {
+        self.assert_owner();
+        let amount: Balance = amount.into();
+        assert!(amount > 0, "ERR_MUST_HAVE_ENDORSEMENT");
+        self.data_mut().lock_amount_per_proposal = amount;
+    }
+
+    pub fn modify_nonsense_threshold(&mut self, threshold: Rational) {
+        self.assert_owner();
+        assert!(threshold.is_valid(), "ERR_ILLEGAL_THRESHOLD");
+        self.data_mut().nonsense_threshold = threshold;
+    }
+
+    pub fn modify_vote_policy(&mut self, vote_policy: VotePolicy) {
+        self.assert_owner();
+        match &vote_policy {
+            VotePolicy::Relative(l, j) => {
+                assert!(l.is_valid(), "ERR_ILLEGAL_THRESHOLD");
+                assert!(j.is_valid(), "ERR_ILLEGAL_THRESHOLD");
+                if let Some(elem) = self.data_mut().vote_policy.get_mut(0) {
+                    *elem = vote_policy;
+                }
+            },
+            VotePolicy::Absolute(p, f) => {
+                assert!(p.is_valid(), "ERR_ILLEGAL_THRESHOLD");
+                assert!(f.is_valid(), "ERR_ILLEGAL_THRESHOLD");
+                if let Some(elem) = self.data_mut().vote_policy.get_mut(1) {
+                    *elem = vote_policy;
+                }
+            },
+        }
     }
 
     pub(crate) fn assert_owner(&self) {
