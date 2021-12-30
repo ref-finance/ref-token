@@ -10,6 +10,13 @@ use crate::*;
 use crate::utils::Rational;
 
 
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(crate = "near_sdk::serde")]
+pub enum PolicyType {
+    Relative = 0x0,
+    Absolute = 0x1,
+}
+
 #[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone)]
 #[cfg_attr(not(target_arch = "wasm32"), derive(Debug, PartialEq))]
 #[serde(crate = "near_sdk::serde")]
@@ -26,37 +33,36 @@ impl From<Vec<u8>> for VotePolicy {
 
 impl VotePolicy {
 
-    /// the priority sequense is Remove, Fail, Pass
-    pub fn judge(&self, aye: &Balance, nay: &Balance, remove: &Balance, total: &Balance) -> ProposalStatus {
-        match self {
-            VotePolicy::Relative(limit, threshold) => {
-                let voted = aye + nay + remove;
-                if limit.pass(&voted, total) {
-                    if threshold.pass(remove, &voted) {
-                        ProposalStatus::Removed
-                    } else if threshold.pass(nay, &voted) {
+    /// to see if the proposal goes to a final state
+    pub fn judge(&self, aye: &Balance, nay: &Balance, remove: &Balance, total: &Balance, nonsense_threshold: &Rational) -> ProposalStatus {
+        if nonsense_threshold.pass(remove, total) {
+            ProposalStatus::Removed
+        } else {
+            match self {
+                VotePolicy::Relative(limit, threshold) => {
+                    let voted = aye + nay + remove;
+                    if limit.pass(&voted, total) {
+                        if threshold.pass(nay, &voted) {
+                            ProposalStatus::Rejected
+                        } else if threshold.pass(aye, &voted) {
+                            ProposalStatus::Approved
+                        } else {
+                            ProposalStatus::InProgress
+                        }
+                    } else {
+                        ProposalStatus::InProgress
+                    }
+                },
+                VotePolicy::Absolute(pass_threshold, fail_threshold) => {
+                    if fail_threshold.pass(nay, total) {
                         ProposalStatus::Rejected
-                    } else if threshold.pass(aye, &voted) {
+                    } else if pass_threshold.pass(aye, total) {
                         ProposalStatus::Approved
                     } else {
                         ProposalStatus::InProgress
                     }
-                } else {
-                    ProposalStatus::InProgress
-                }
-            },
-            VotePolicy::Absolute(pass_threshold, fail_threshold) => {
-                if fail_threshold.pass(remove, total) {
-                    ProposalStatus::Removed
-                } else if fail_threshold.pass(nay, total) {
-                    ProposalStatus::Rejected
-                } else if pass_threshold.pass(aye, total) {
-                    ProposalStatus::Approved
-                } else {
-                    ProposalStatus::InProgress
-                }
-            },
-            // _ => ProposalStatus::InProgress,
+                },
+            }
         }
     }
 
@@ -226,6 +232,7 @@ impl Proposal {
         vote: &Vote,
         amount: &Balance,
         total: &Balance,
+        nonsense_threshold: &Rational,
     ) {
         self.vote_counts[vote.clone() as usize] += amount;
         self.vote_counts[3] = total.clone();
@@ -234,7 +241,8 @@ impl Proposal {
             &self.vote_counts[0], 
             &self.vote_counts[1], 
             &self.vote_counts[2], 
-            &self.vote_counts[3]
+            &self.vote_counts[3],
+            nonsense_threshold,
         );
     }
 
@@ -273,14 +281,11 @@ impl Contract {
 impl Contract {
     /// Add proposal to this DAO.
     #[payable]
-    pub fn add_proposal(&mut self, description: String, kind: ProposalKind, vote_policy: VotePolicy, session_id: u32, start_offset_sec: u32, lasts_sec: u32) -> u64 {
+    pub fn add_proposal(&mut self, description: String, kind: ProposalKind, policy_type: PolicyType, session_id: u32, start_offset_sec: u32, lasts_sec: u32) -> u64 {
         // check point
         self.fresh_sessions();
 
         let proposer = env::predecessor_account_id();
-
-        // check vote_policy
-        assert!(vote_policy.is_valid(), "ERR_ILLEGAL_VOTE_POLICY");
 
         // check and lock deposit
         let deposit_amount = env::attached_deposit();
@@ -300,7 +305,7 @@ impl Contract {
             proposer,
             lock_amount: self.data().lock_amount_per_proposal,
             description,
-            vote_policy,
+            vote_policy: self.data().vote_policy.get(policy_type as usize).unwrap().clone(),
             kind,
             status: ProposalStatus::WarmUp,
             vote_counts: [0; 4],
@@ -375,7 +380,7 @@ impl Contract {
         let ballot_amount = self.internal_vote(&account_id, id, &vote);
 
         // update and judge proposal result
-        proposal.update_votes(&vote, &ballot_amount, &self.data().cur_total_ballot);
+        proposal.update_votes(&vote, &ballot_amount, &self.data().cur_total_ballot, &self.data().nonsense_threshold);
 
         if proposal.status == ProposalStatus::Approved || proposal.status == ProposalStatus::Rejected {
             // return lock near to proposer

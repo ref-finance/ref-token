@@ -5,7 +5,8 @@
 use near_sdk::collections::{LookupMap, Vector};
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::json_types::{ValidAccountId};
-use near_sdk::{env, near_bindgen, AccountId, Balance, PanicOnDefault, Timestamp, BorshStorageKey};
+use near_sdk::{env, near_bindgen, AccountId, Balance, PanicOnDefault, PromiseOrValue, Timestamp, BorshStorageKey};
+use proposals::VotePolicy;
 
 use crate::session::SessionInfo;
 use crate::account::VAccount;
@@ -56,11 +57,17 @@ pub struct ContractData {
 
     accounts: LookupMap<AccountId, VAccount>,
 
+    // the global vote policy
+    vote_policy: Vec<VotePolicy>,
+
     /// Last available id for the proposals.
     pub last_proposal_id: u64,
     /// Proposal map from ID to proposal information.
     pub proposals: LookupMap<u64, VersionedProposal>,
+    
+    /// limits
     pub lock_amount_per_proposal: Balance,
+    pub nonsense_threshold: Rational,
 }
 
 #[derive(BorshSerialize, BorshDeserialize)]
@@ -91,9 +98,11 @@ impl Contract {
                 cur_session: 0,
                 cur_total_ballot: 0,
                 accounts: LookupMap::new(StorageKeys::Accounts),
+                vote_policy: vec![DEFAULT_VP_RELATIVE, DEFAULT_VP_ABSOLUTE],
                 last_proposal_id: 0,
                 proposals: LookupMap::new(StorageKeys::Proposals),
                 lock_amount_per_proposal: DEFAULT_LOCK_NEAR_AMOUNT_FOR_PROPOSAL,
+                nonsense_threshold: DEFAULT_NONSENSE_THRESHOLD,
             }),
         }
     }
