@@ -13,23 +13,52 @@ pub struct SessionInfo {
 }
 
 impl Contract {
+    /// get newest cur ballots
+    pub(crate) fn calc_cur_ballots(&self) -> Balance {
+        if self.has_launch() {
+            let cur_session_id = self.get_cur_session_id();
+            if self.data().sessions[1].session_id == 0 {
+                // hasn't initialized
+                0
+            } else {
+                // get real ballot
+                let head = self.data().cur_session;
+                let mut ballot = self.data().cur_total_ballot;
+                for i in 0..MAX_SESSIONS {
+                    let idx = (i + head) % MAX_SESSIONS; 
+                    let session = self.data().sessions[idx].clone();
+                    if session.session_id < cur_session_id {
+                        // expire ballot
+                        ballot -= session.expire_amount;
+                    } else {
+                        break;
+                    }
+                }
+                ballot
+            }
+        } else {
+            // before launch, ballot amount is 0
+            0
+        }
+    }
+
     /// update sessions.
     pub(crate) fn fresh_sessions(&mut self) {
         self.assert_launch();
-        let cur_session_id = (env::block_timestamp() - self.data().genesis_timestamp) / SESSION_INTERMAL;
+        let cur_session_id = self.get_cur_session_id();
         
         let head = self.data().cur_session;
         if self.data().sessions[1].session_id == 0 {
             // TODO: need initiate all sessions according to genesis timestamp
             for i in 0..MAX_SESSIONS {
-                self.data_mut().sessions[i].session_id = cur_session_id as u32 + i as u32;
+                self.data_mut().sessions[i].session_id = cur_session_id + i as u32;
             }
         } else {
             // checkpoint logic
             for i in 0..MAX_SESSIONS {
                 let idx = (i + head) % MAX_SESSIONS; 
                 let session = self.data().sessions[idx].clone();
-                if (session.session_id as u64) < cur_session_id {
+                if session.session_id < cur_session_id {
                     // expire ballot
                     self.data_mut().cur_total_ballot -= session.expire_amount;
                     // prepare for new session

@@ -45,10 +45,10 @@ pub struct Account {
     pub locking_amount: Balance,
     /// The amount of ballots the account holds
     pub ballot_amount: Balance,
-    /// unlocking session id
+    /// unlocking session id, unlocking at the begining of this session
     pub unlocking_session_id: u32,
     /// Record proposal voting info, when ballot_amount changes, should update this one and global proposal vote info
-    pub proposals: LookupMap<u64, AccountVote>,
+    pub proposals: LookupMap<u32, AccountVote>,
 }
 
 impl Account {
@@ -69,6 +69,18 @@ impl Account {
             0
         }
     }
+
+    pub(crate) fn sync_ballot(&self, cur_session_id: u32) -> Balance {
+        if cur_session_id >= self.unlocking_session_id {
+            0
+        } else {
+            self.ballot_amount
+        }
+    }
+
+    pub(crate) fn touch(&mut self, cur_session_id: u32) {
+        self.ballot_amount = self.sync_ballot(cur_session_id);
+    }
 }
 
 
@@ -78,6 +90,8 @@ impl Contract {
         let current_state = self.data();
         let mut account = current_state.accounts.get(account_id).map(|va| va.into_current()).expect("ERR_USER_NOT_REGISTER");
         let current_session_info = current_state.sessions[current_state.cur_session];
+
+        account.touch(self.get_cur_session_id());
 
         if lasts == 0 {
             // verify append has valid running locking
@@ -139,9 +153,9 @@ impl Contract {
 
     fn internal_unlock(&mut self, account_id: &AccountId) -> Balance {
         let current_state = self.data();
-        let cur_session_id = current_state.sessions[current_state.cur_session].session_id; 
         let mut account = current_state.accounts.get(account_id).map(|va| va.into_current()).expect("ERR_USER_NOT_REGISTER");
-        let amount = account.unlock(cur_session_id);
+        account.touch(self.get_cur_session_id());
+        let amount = account.unlock(self.get_cur_session_id());
         self.data_mut().accounts.insert(account_id, &account.into());
         amount
     }
@@ -156,8 +170,10 @@ impl Contract {
             })
         }.into());
     }
-    pub(crate) fn internal_vote(&mut self, account_id: &AccountId, proposal_id: u64, vote: &Vote) -> Balance {
+    pub(crate) fn internal_vote(&mut self, account_id: &AccountId, proposal_id: u32, vote: &Vote) -> Balance {
         let mut account = self.data().accounts.get(account_id).map(|va| va.into_current()).expect("ERR_USER_NOT_REGISTER");
+        account.touch(self.get_cur_session_id());
+        assert!(account.ballot_amount > 0, "ERR_NO_BALLOTS");
         assert!(!account.proposals.contains_key(&proposal_id), "ERR_ALREADY_VOTED");
         let account_vote = AccountVote {
             vote: vote.clone(),
@@ -189,6 +205,7 @@ impl Contract {
 
         if unlocked > 0 {
             log!("Unlock {} token back to {}", unlocked, account_id);
+            self.data_mut().cur_lock_amount -= unlocked;
             ext_fungible_token::ft_transfer(
                 account_id.clone(),
                 U128(unlocked),
@@ -229,6 +246,7 @@ impl Contract {
                 if self.data().accounts.contains_key(&sender_id) {
                     let mut account = self.data().accounts.get(&sender_id).map(|va| va.into_current()).unwrap();
                     account.locking_amount += amount.0;
+                    self.data_mut().cur_lock_amount += amount.0;
                     self.data_mut().accounts.insert(&sender_id, &account.into());
 
                     env::log(
@@ -282,6 +300,7 @@ impl FungibleTokenReceiver for Contract {
             self.internal_lock(sender_id.as_ref(), amount, locking_period);
             
         }
+        self.data_mut().cur_lock_amount += amount;
         PromiseOrValue::Value(U128(0))
     }
 }

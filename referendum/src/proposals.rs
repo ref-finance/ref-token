@@ -107,21 +107,12 @@ pub enum ProposalStatus {
 }
 
 /// Kinds of proposals, doing different action.
-#[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize)]
-#[cfg_attr(not(target_arch = "wasm32"), derive(Clone, Debug))]
+#[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone)]
+#[cfg_attr(not(target_arch = "wasm32"), derive(Debug, PartialEq))]
 #[serde(crate = "near_sdk::serde")]
 pub enum ProposalKind {
-    /// Just a signaling vote, with no execution.
+    /// Just a single vote, with no execution.
     Vote,
-}
-
-impl ProposalKind {
-    /// Returns label of policy for given type of proposal.
-    pub fn to_policy_label(&self) -> &str {
-        match self {
-            ProposalKind::Vote => "vote",
-        }
-    }
 }
 
 impl From<&str> for ProposalKind {
@@ -136,8 +127,9 @@ impl From<&str> for ProposalKind {
 }
 
 /// Set of possible action to take.
-#[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Debug)]
+#[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize)]
 #[serde(crate = "near_sdk::serde")]
+#[cfg_attr(not(target_arch = "wasm32"), derive(Debug, PartialEq))]
 pub enum Action {
     /// Vote to approve given proposal or bounty.
     VoteApprove,
@@ -164,15 +156,10 @@ impl From<&str> for Action {
     }
 }
 
-impl Action {
-    pub fn to_policy_label(&self) -> String {
-        format!("{:?}", self)
-    }
-}
-
 /// Votes recorded in the proposal.
-#[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone, Debug)]
+#[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone)]
 #[serde(crate = "near_sdk::serde")]
+#[cfg_attr(not(target_arch = "wasm32"), derive(Debug, PartialEq))]
 pub enum Vote {
     Approve = 0x0,
     Reject = 0x1,
@@ -284,7 +271,7 @@ impl Proposal {
 }
 
 impl Contract {
-    pub(crate) fn internal_append_vote(&mut self, id:u64, vote: &Vote, amount: &Balance) -> Balance{
+    pub(crate) fn internal_append_vote(&mut self, id:u32, vote: &Vote, amount: &Balance) -> Balance{
         let mut proposal: Proposal = self.data().proposals.get(&id).expect("ERR_NO_PROPOSAL").into();
         let cur_status = proposal.get_cur_status(self.data().genesis_timestamp);
         proposal.status = cur_status;
@@ -313,7 +300,7 @@ impl Contract {
 impl Contract {
     /// Add proposal to this DAO.
     #[payable]
-    pub fn add_proposal(&mut self, description: String, kind: ProposalKind, policy_type: PolicyType, session_id: u32, start_offset_sec: u32, lasts_sec: u32) -> u64 {
+    pub fn add_proposal(&mut self, description: String, kind: ProposalKind, policy_type: PolicyType, session_id: u32, start_offset_sec: u32, lasts_sec: u32) -> u32 {
         // check point
         self.fresh_sessions();
 
@@ -358,14 +345,14 @@ impl Contract {
             }
         }
         let mut proposal_ids = self.data().proposal_ids_in_sessions.get( session_id as u64).unwrap();
-        proposal_ids.push(id as u64);
+        proposal_ids.push(id);
         self.data_mut().proposal_ids_in_sessions.replace(session_id as u64, &proposal_ids);
 
         id
     }
 
     /// proposer can call this to remove proposal before start time.
-    pub fn remove_proposal(&mut self, id: u64) -> bool {
+    pub fn remove_proposal(&mut self, id: u32) -> bool {
         // sync point
         self.fresh_sessions();
         let proposal: Proposal = self.data().proposals.get(&id).expect("ERR_NO_PROPOSAL").into();
@@ -389,7 +376,7 @@ impl Contract {
     }
 
     /// When a proposal expired, the proposer can call this to redeem locked near
-    pub fn redeem_near_in_expired_proposal(&mut self, id: u64) -> bool {
+    pub fn redeem_near_in_expired_proposal(&mut self, id: u32) -> bool {
         // sync point
         self.fresh_sessions();
         let mut proposal: Proposal = self.data().proposals.get(&id).expect("ERR_NO_PROPOSAL").into();
@@ -408,7 +395,7 @@ impl Contract {
 
     /// Act on given proposal by id, if permissions allow.
     /// Memo is logged but not stored in the state. Can be used to leave notes or explain the action.
-    pub fn act_proposal(&mut self, id: u64, action: Action, memo: Option<String>) -> bool {
+    pub fn act_proposal(&mut self, id: u32, action: Action, memo: Option<String>) -> bool {
         // sync point
         self.fresh_sessions();
 

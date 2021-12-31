@@ -47,13 +47,15 @@ pub struct ContractData {
     sessions: [SessionInfo; MAX_SESSIONS],
 
     // each session contains proposal id array
-    proposal_ids_in_sessions: Vector<Vec<u64>>,
+    proposal_ids_in_sessions: Vector<Vec<u32>>,
 
     // current session idx in sessions array
     cur_session: usize,
 
     // total ballot amount in current session
     cur_total_ballot: Balance,
+    // total lock token amount
+    cur_lock_amount: Balance,
 
     accounts: LookupMap<AccountId, VAccount>,
     account_number: u64,
@@ -62,9 +64,9 @@ pub struct ContractData {
     vote_policy: Vec<VotePolicy>,
 
     /// Last available id for the proposals.
-    pub last_proposal_id: u64,
+    pub last_proposal_id: u32,
     /// Proposal map from ID to proposal information.
-    pub proposals: LookupMap<u64, VersionedProposal>,
+    pub proposals: LookupMap<u32, VersionedProposal>,
     
     /// limits
     pub lock_amount_per_proposal: Balance,
@@ -98,6 +100,7 @@ impl Contract {
                 proposal_ids_in_sessions: Vector::new(StorageKeys::ProposalIdsInSession),
                 cur_session: 0,
                 cur_total_ballot: 0,
+                cur_lock_amount: 0,
                 accounts: LookupMap::new(StorageKeys::Accounts),
                 account_number: 0,
                 vote_policy: vec![DEFAULT_VP_RELATIVE, DEFAULT_VP_ABSOLUTE],
@@ -121,5 +124,14 @@ impl Contract {
         match &mut self.data {
             VContractData::Current(data) => data,
         }
+    }
+
+    fn has_launch(&self) -> bool {
+        return env::block_timestamp() > self.data().genesis_timestamp
+    }
+
+    fn get_cur_session_id(&self) -> u32 {
+        let cur_session_id = (env::block_timestamp() - self.data().genesis_timestamp) / SESSION_INTERMAL;
+        cur_session_id as u32
     }
 }
