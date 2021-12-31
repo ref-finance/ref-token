@@ -56,6 +56,7 @@ pub struct ContractData {
     cur_total_ballot: Balance,
 
     accounts: LookupMap<AccountId, VAccount>,
+    account_number: u64,
 
     // the global vote policy
     vote_policy: Vec<VotePolicy>,
@@ -98,6 +99,7 @@ impl Contract {
                 cur_session: 0,
                 cur_total_ballot: 0,
                 accounts: LookupMap::new(StorageKeys::Accounts),
+                account_number: 0,
                 vote_policy: vec![DEFAULT_VP_RELATIVE, DEFAULT_VP_ABSOLUTE],
                 last_proposal_id: 0,
                 proposals: LookupMap::new(StorageKeys::Proposals),

@@ -9,11 +9,12 @@ use near_sdk::json_types::U128;
 pub struct ContractMetadata {
     pub owner_id: AccountId,
     pub locked_token: AccountId,
-    pub genesis_timestamp: u64,
+    pub genesis_timestamp_sec: u32,
     pub cur_session: usize,
     pub cur_total_ballot: U128,
     pub last_proposal_id: u64,
     pub lock_amount_per_proposal: U128,
+    pub account_number: u64,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -77,11 +78,12 @@ impl Contract {
         ContractMetadata {
             owner_id: current_state.owner_id.clone(),
             locked_token: current_state.locked_token.clone(),
-            genesis_timestamp: current_state.genesis_timestamp,
+            genesis_timestamp_sec: nano_to_sec(current_state.genesis_timestamp),
             cur_session: current_state.cur_session,
             cur_total_ballot: current_state.cur_total_ballot.into(),
             last_proposal_id: current_state.last_proposal_id,
             lock_amount_per_proposal: U128(current_state.lock_amount_per_proposal),
+            account_number: current_state.account_number,
         }
     }
 
