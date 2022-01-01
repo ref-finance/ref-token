@@ -32,6 +32,7 @@ impl StorageManagement for Contract {
             }
         } else {
             self.internal_register_account(&account_id);
+            self.data_mut().account_number += 1;
             let refund = amount - min_balance;
             if refund > 0 {
                 Promise::new(env::predecessor_account_id()).transfer(refund);
@@ -61,6 +62,8 @@ impl StorageManagement for Contract {
                 "ERR_ACCOUNT_NOT_UNLOCK"
             );
             self.data_mut().accounts.remove(&account_id);
+            let number = self.data().account_number.checked_sub(1).unwrap_or(0);
+            self.data_mut().account_number = number;
             Promise::new(account_id.clone()).transfer(STORAGE_BALANCE_MIN_BOUND);
             true
         } else {

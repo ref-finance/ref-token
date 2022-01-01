@@ -70,10 +70,7 @@ impl Contract {
     }
 
     pub(crate) fn assert_launch(&self) {
-        assert!(
-            env::block_timestamp() > self.data().genesis_timestamp,
-            "ERR_NOT_LAUNCHED"
-        );
+        assert!(self.has_launch(), "ERR_NOT_LAUNCHED");
     }
 
     /// Migration function.

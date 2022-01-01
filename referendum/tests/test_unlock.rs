@@ -21,7 +21,7 @@ fn test_unlock(){
     assert_eq!(contract_metadata.cur_session, 0);
     assert_eq!(contract_metadata.cur_total_ballot.0, to_yocto("10"));
 
-    let account_info = view!(referendum_contract.get_user_base_info(user.valid_account_id())).unwrap_json::<AccountInfo>();
+    let account_info = view!(referendum_contract.get_account_info(user.valid_account_id())).unwrap_json::<AccountInfo>();
     assert_eq!(account_info.locking_amount.0, to_yocto("10"));
     assert_eq!(account_info.ballot_amount.0, to_yocto("10"));
     assert_eq!(account_info.unlocking_session_id, 0);
@@ -36,7 +36,7 @@ fn test_unlock(){
 
     call!(
         user,
-        referendum_contract.unlock(),
+        referendum_contract.withdraw(),
         deposit = 1
     ).assert_success();
 
@@ -44,7 +44,7 @@ fn test_unlock(){
     assert_eq!(contract_metadata.cur_session, 1);
     assert_eq!(contract_metadata.cur_total_ballot.0, 0);
 
-    let account_info = view!(referendum_contract.get_user_base_info(user.valid_account_id())).unwrap_json::<AccountInfo>();
+    let account_info = view!(referendum_contract.get_account_info(user.valid_account_id())).unwrap_json::<AccountInfo>();
     assert_eq!(account_info.locking_amount.0, 0);
     assert_eq!(account_info.ballot_amount.0, 0);
     assert_eq!(account_info.unlocking_session_id, 0);
@@ -65,7 +65,7 @@ fn test_unlock(){
     assert_eq!(contract_metadata.cur_session, 1);
     assert_eq!(contract_metadata.cur_total_ballot.0, to_yocto("29"));
 
-    let account_info = view!(referendum_contract.get_user_base_info(user.valid_account_id())).unwrap_json::<AccountInfo>();
+    let account_info = view!(referendum_contract.get_account_info(user.valid_account_id())).unwrap_json::<AccountInfo>();
     assert_eq!(account_info.locking_amount.0, to_yocto("30"));
     assert_eq!(account_info.ballot_amount.0, to_yocto("29"));
     assert_eq!(account_info.unlocking_session_id, 1);
@@ -92,7 +92,7 @@ fn test_unlock_ahead(){
     assert_eq!(contract_metadata.cur_session, 0);
     assert_eq!(contract_metadata.cur_total_ballot.0, to_yocto("10"));
 
-    let account_info = view!(referendum_contract.get_user_base_info(user.valid_account_id())).unwrap_json::<AccountInfo>();
+    let account_info = view!(referendum_contract.get_account_info(user.valid_account_id())).unwrap_json::<AccountInfo>();
     assert_eq!(account_info.locking_amount.0, to_yocto("10"));
     assert_eq!(account_info.ballot_amount.0, to_yocto("10"));
     assert_eq!(account_info.unlocking_session_id, 0);
@@ -105,7 +105,7 @@ fn test_unlock_ahead(){
 
     call!(
         user,
-        referendum_contract.unlock(),
+        referendum_contract.withdraw(),
         deposit = 1
     ).assert_success();
 

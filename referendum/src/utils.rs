@@ -74,8 +74,8 @@ impl Rational {
     }
 }
 
-pub fn nano_to_sec(nano: Timestamp) -> u64 {
-    nano / 1_000_000_000
+pub fn nano_to_sec(nano: Timestamp) -> u32 {
+    (nano / 1_000_000_000) as u32
 }
 
 pub fn sec_to_nano(sec: u32) -> Timestamp {
@@ -83,8 +83,8 @@ pub fn sec_to_nano(sec: u32) -> Timestamp {
 }
 
 #[ext_contract(ext_self)]
-pub trait Unlock {
-    fn callback_post_unlock(
+pub trait Withdraw {
+    fn callback_post_withdraw(
         &mut self,
         sender_id: AccountId,
         amount: U128,
