@@ -1,6 +1,7 @@
 //! View functions for the contract.
 
 use crate::*;
+use crate::proposals::Vote;
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::json_types::U128;
 
@@ -72,6 +73,16 @@ pub struct AccountInfo {
     /// unlock at the begin of this session, meanwhile ballots reset to zero
     pub unlocking_session_id: u32,
 }
+
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(crate = "near_sdk::serde")]
+#[cfg_attr(not(target_arch = "wasm32"), derive(Debug, PartialEq))]
+pub struct HumanReadableAccountVote {
+    pub proposal_id: u32,
+    pub vote: Vote,
+    pub amount: U128,
+}
+
 
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "near_sdk::serde")]
@@ -165,7 +176,30 @@ impl Contract {
         }
     }
 
-    // TODO: pub fn get_account_proposal_in_session(&self, account_id: ValidAccountId, session_id: u32) -> Vec<HumanReadableAccountVote>
+    pub fn get_account_proposals_in_session(&self, account_id: ValidAccountId, session_id: u32) -> Vec<HumanReadableAccountVote> {
+        let mut ret: Vec<HumanReadableAccountVote> = vec![];
+        match self.data().proposal_ids_in_sessions.get(session_id as u64) {
+            Some(proposal_ids) => {
+                if let Some(vacc) = self.data().accounts.get(account_id.as_ref()) {
+                    match vacc {
+                        VAccount::Current(acc) => {
+                            for proposal_id in proposal_ids {
+                                if let Some(account_vote) = acc.proposals.get(&proposal_id).as_ref() {
+                                    ret.push(HumanReadableAccountVote {
+                                        proposal_id,
+                                        vote: account_vote.vote.clone(),
+                                        amount: account_vote.amount.into(),
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            None => {},
+        }
+        ret   
+    }
 
     pub fn get_session_state(&self, session_idx: usize) -> SessionState {
         self.data().sessions[session_idx].into()

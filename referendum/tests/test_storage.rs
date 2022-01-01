@@ -101,7 +101,7 @@ fn test_storage_unregister_normal(){
 
     call!(
         user,
-        referendum_contract.unlock(),
+        referendum_contract.withdraw(),
         deposit = 1
     ).assert_success();
 

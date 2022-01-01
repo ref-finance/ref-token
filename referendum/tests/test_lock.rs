@@ -38,7 +38,7 @@ fn test_lock_new_lasts1(){
     assert_eq!(contract_metadata.cur_session, 0);
     assert_eq!(contract_metadata.cur_total_ballot.0, to_yocto("10"));
 
-    let account_info = view!(referendum_contract.get_user_base_info(user.valid_account_id())).unwrap_json::<AccountInfo>();
+    let account_info = view!(referendum_contract.get_account_info(user.valid_account_id())).unwrap_json::<AccountInfo>();
     assert_eq!(account_info.locking_amount.0, to_yocto("10"));
     assert_eq!(account_info.ballot_amount.0, to_yocto("10"));
     assert_eq!(account_info.unlocking_session_id, 0);
@@ -67,7 +67,7 @@ fn test_lock_new_lasts10(){
     assert_eq!(contract_metadata.cur_session, 0);
     assert_eq!(contract_metadata.cur_total_ballot.0, to_yocto("10") * 10);
 
-    let account_info = view!(referendum_contract.get_user_base_info(user.valid_account_id())).unwrap_json::<AccountInfo>();
+    let account_info = view!(referendum_contract.get_account_info(user.valid_account_id())).unwrap_json::<AccountInfo>();
     assert_eq!(account_info.locking_amount.0, to_yocto("10"));
     assert_eq!(account_info.ballot_amount.0, to_yocto("10") * 10);
     assert_eq!(account_info.unlocking_session_id, 9);
@@ -94,7 +94,7 @@ fn test_lock_new_when_session_last_day(){
     assert_eq!(contract_metadata.cur_session, 0);
     assert_eq!(contract_metadata.cur_total_ballot.0, to_yocto("1"));
 
-    let account_info = view!(referendum_contract.get_user_base_info(user.valid_account_id())).unwrap_json::<AccountInfo>();
+    let account_info = view!(referendum_contract.get_account_info(user.valid_account_id())).unwrap_json::<AccountInfo>();
     assert_eq!(account_info.locking_amount.0, to_yocto("30"));
     assert_eq!(account_info.ballot_amount.0, to_yocto("1"));
     assert_eq!(account_info.unlocking_session_id, 0);
@@ -115,7 +115,7 @@ fn test_lock_new_expire(){
         deposit = 1
     ).assert_success();
 
-    let account_info = view!(referendum_contract.get_user_base_info(user.valid_account_id())).unwrap_json::<AccountInfo>();
+    let account_info = view!(referendum_contract.get_account_info(user.valid_account_id())).unwrap_json::<AccountInfo>();
     assert_eq!(account_info.locking_amount.0, to_yocto("10"));
     assert_eq!(account_info.ballot_amount.0, to_yocto("10"));
     assert_eq!(account_info.unlocking_session_id, 0);
@@ -147,7 +147,7 @@ fn test_lock_append_expire(){
         deposit = 1
     ).assert_success();
 
-    let account_info = view!(referendum_contract.get_user_base_info(user.valid_account_id())).unwrap_json::<AccountInfo>();
+    let account_info = view!(referendum_contract.get_account_info(user.valid_account_id())).unwrap_json::<AccountInfo>();
     assert_eq!(account_info.locking_amount.0, to_yocto("10"));
     assert_eq!(account_info.ballot_amount.0, to_yocto("10"));
     assert_eq!(account_info.unlocking_session_id, 0);
@@ -189,7 +189,7 @@ fn test_lock_append(){
     assert_eq!(contract_metadata.cur_session, 0);
     assert_eq!(contract_metadata.cur_total_ballot.0, to_yocto("20") * 10);
 
-    let account_info = view!(referendum_contract.get_user_base_info(user.valid_account_id())).unwrap_json::<AccountInfo>();
+    let account_info = view!(referendum_contract.get_account_info(user.valid_account_id())).unwrap_json::<AccountInfo>();
     assert_eq!(account_info.locking_amount.0, to_yocto("20"));
     assert_eq!(account_info.ballot_amount.0, to_yocto("20") * 10);
     assert_eq!(account_info.unlocking_session_id, 9);

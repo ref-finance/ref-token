@@ -2,23 +2,23 @@
 * REF referendum contract
 *
 */
-use near_sdk::collections::{LookupMap, Vector};
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::json_types::{ValidAccountId};
-use near_sdk::{env, near_bindgen, AccountId, Balance, PanicOnDefault, Timestamp, BorshStorageKey};
+use near_sdk::collections::{LookupMap, Vector};
+use near_sdk::json_types::ValidAccountId;
+use near_sdk::{env, near_bindgen, AccountId, Balance, BorshStorageKey, PanicOnDefault, Timestamp};
 use proposals::VotePolicy;
 
-use crate::session::SessionInfo;
 use crate::account::VAccount;
 use crate::proposals::VersionedProposal;
+use crate::session::SessionInfo;
 use crate::utils::*;
 
-mod session;
-mod proposals;
 mod account;
-mod utils;
 mod owner;
+mod proposals;
+mod session;
 mod storage_impl;
+mod utils;
 mod views;
 
 near_sdk::setup_alloc!();
@@ -28,12 +28,11 @@ pub enum StorageKeys {
     Accounts,
     Proposals,
     ProposalIdsInSession,
-    AccountProposals {account_id: AccountId},
+    AccountProposals { account_id: AccountId },
 }
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct ContractData {
-
     // owner of this contract
     owner_id: AccountId,
 
@@ -67,7 +66,7 @@ pub struct ContractData {
     pub last_proposal_id: u32,
     /// Proposal map from ID to proposal information.
     pub proposals: LookupMap<u32, VersionedProposal>,
-    
+
     /// limits
     pub lock_amount_per_proposal: Balance,
     pub nonsense_threshold: Rational,
@@ -127,11 +126,10 @@ impl Contract {
     }
 
     fn has_launch(&self) -> bool {
-        return env::block_timestamp() > self.data().genesis_timestamp
+        return env::block_timestamp() > self.data().genesis_timestamp;
     }
 
     fn get_cur_session_id(&self) -> u32 {
-        let cur_session_id = (env::block_timestamp() - self.data().genesis_timestamp) / SESSION_INTERMAL;
-        cur_session_id as u32
+        ((env::block_timestamp() - self.data().genesis_timestamp) / SESSION_INTERMAL) as u32
     }
 }

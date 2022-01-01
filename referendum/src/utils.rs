@@ -83,8 +83,8 @@ pub fn sec_to_nano(sec: u32) -> Timestamp {
 }
 
 #[ext_contract(ext_self)]
-pub trait Unlock {
-    fn callback_post_unlock(
+pub trait Withdraw {
+    fn callback_post_withdraw(
         &mut self,
         sender_id: AccountId,
         amount: U128,
