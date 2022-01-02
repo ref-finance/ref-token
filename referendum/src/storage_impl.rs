@@ -85,7 +85,7 @@ impl StorageManagement for Contract {
                 available: U128(STORAGE_BALANCE_MIN_BOUND),
             })
         }else{
-            env::panic(b"ERR_USER_NOT_REGISTER");
+            None
         }
     }
 }
