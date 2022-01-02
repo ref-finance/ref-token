@@ -103,46 +103,45 @@ impl Contract {
 
         account.touch(self.get_cur_session_id());
 
-        let (locking_period, end_session_id) = {
-            if lasts == 0 {
-                // APPEND mode, verify non-zero ballot
-                assert!(account.ballot_amount != 0, "ERR_NO_RUNNING_LOCKING");
-                (
-                    account.unlocking_session_id - current_session_info.session_id,
-                    account.unlocking_session_id,
-                )
-            } else {
-                // NEW mode, verify zero ballot
-                assert_eq!(account.ballot_amount, 0, "ERR_EXIST_RUNNING_LOCKING");
-                (lasts, current_session_info.session_id + lasts)
-            }
-        };
-        assert!(locking_period > 0, "ERR_ILLEGAL_LASTS");
-
-        // calculate ballots
-        let total_amount = account.locking_amount + locking_amount;
-        let future_session_ballots = total_amount * (locking_period - 1) as u128;
         let current_session_remaining_days = nano_to_day(SESSION_INTERMAL)
             - nano_to_day(
                 env::block_timestamp()
                     - current_state.genesis_timestamp
                     - current_session_info.session_id as u64 * SESSION_INTERMAL,
             );
-        let current_session_ballots = (U256::from(total_amount)
-            * U256::from(current_session_remaining_days)
-            / U256::from(nano_to_day(SESSION_INTERMAL)))
-        .as_u128();
-        let total_ballots = future_session_ballots + current_session_ballots;
 
+        let (ballot_amount, unlocking_session_id) = {
+            if lasts == 0 {
+                // APPEND mode, verify non-zero ballot
+                assert!(account.ballot_amount != 0, "ERR_NO_RUNNING_LOCKING");
+                (
+                    calculate_ballots(
+                        current_session_remaining_days, 
+                        locking_amount, 
+                        account.unlocking_session_id - current_session_info.session_id),
+                    account.unlocking_session_id
+                )
+            } else {
+                // NEW mode, verify zero ballot
+                assert_eq!(account.ballot_amount, 0, "ERR_EXIST_RUNNING_LOCKING");
+                (
+                    calculate_ballots(
+                        current_session_remaining_days, 
+                        account.locking_amount + locking_amount, 
+                        lasts),
+                    current_session_info.session_id + lasts
+                )
+            }
+        };
+        
         // locate end_session (array index)
         let end_session = (current_state.cur_session
-            + (end_session_id - current_session_info.session_id) as usize)
+            + (unlocking_session_id - 1 - current_session_info.session_id) as usize)
             % MAX_SESSIONS;
 
-        let delta_ballot = total_ballots - account.ballot_amount;
-
         // update account
-        account.add_locking(locking_amount, delta_ballot, end_session_id);
+        account.add_locking(locking_amount, ballot_amount, unlocking_session_id);
+        self.data_mut().cur_total_ballot += ballot_amount;
         if lasts == 0 {
             // auto update user involved proposal votes
             if let Some(proposal_ids) = self
@@ -155,7 +154,7 @@ impl Contract {
                         let append_amount = self.internal_append_vote(
                             proposal_id,
                             &account_vote.vote,
-                            &delta_ballot,
+                            &ballot_amount,
                         );
                         account_vote.amount += append_amount;
                         account.proposals.insert(&proposal_id, &account_vote);
@@ -166,21 +165,20 @@ impl Contract {
                 "User {} appends locking with {} token got {} ballots, total {} ballots",
                 account_id,
                 locking_amount,
-                delta_ballot,
-                total_ballots,
+                ballot_amount,
+                account.ballot_amount,
             );
         } else {
             log!(
                 "User {} starts new locking with total {} token got {} ballots,  unlocking_session_id : {}",
                 account_id,
                 account.locking_amount,
-                total_ballots,
-                end_session_id
+                ballot_amount,
+                unlocking_session_id
             );
         }
 
-        self.data_mut().sessions[end_session].expire_amount += delta_ballot;
-        self.data_mut().cur_total_ballot += delta_ballot;
+        self.data_mut().sessions[end_session].expire_amount += ballot_amount;
         self.data_mut().accounts.insert(account_id, &account.into());
     }
 

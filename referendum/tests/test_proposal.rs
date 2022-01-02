@@ -42,8 +42,8 @@ fn test_add_proposal(){
     assert_eq!(proposal_info.status, ProposalStatus::WarmUp);
     assert_eq!(proposal_info.vote_counts, [U128(0); 4]);
     assert_eq!(proposal_info.session_id, 1);
-    assert_eq!(proposal_info.start_offset, sec_to_nano(1000));
-    assert_eq!(proposal_info.lasts, sec_to_nano(100000));
+    assert_eq!(proposal_info.start_offset_sec, 1000);
+    assert_eq!(proposal_info.lasts_sec, 100000);
 
     let contract_metadata = view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>();
     assert_eq!(contract_metadata.last_proposal_id, 1);
@@ -124,7 +124,7 @@ fn test_add_proposal_session_id_before_current_session(){
 
     let (proposal_user, _, _) = init_proposal_users(&root, &xref_contract, &referendum_contract);
 
-    root.borrow_runtime_mut().cur_block.block_timestamp = view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp + 31 * 3600 * 24 * 1_000_000_000;
+    root.borrow_runtime_mut().cur_block.block_timestamp = sec_to_nano(view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp_sec) + 31 * 3600 * 24 * 1_000_000_000;
 
     let out_come = call!(
         proposal_user,
@@ -156,7 +156,7 @@ fn test_remove_proposal_during_warm_up(){
     assert!(proposal_user.account().unwrap().amount - orig_user_balance > to_yocto("9.99"));
     assert!(proposal_user.account().unwrap().amount - orig_user_balance < to_yocto("10"));
 
-    assert!(format!("{}", view!(referendum_contract.get_proposal_info(0)).unwrap_err()).contains("Err_INVALID_PROPOSAL_IDX"));
+    assert_eq!(None, view!(referendum_contract.get_proposal_info(0)).unwrap_json::<Option<ProposalInfo>>());
 }
 
 #[test]
@@ -243,7 +243,7 @@ fn test_redeem(){
     
     assert!(!out_come.unwrap_json::<bool>());
 
-    root.borrow_runtime_mut().cur_block.block_timestamp = view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp + 31 * 3600 * 24 * 1_000_000_000;
+    root.borrow_runtime_mut().cur_block.block_timestamp = sec_to_nano(view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp_sec) + 31 * 3600 * 24 * 1_000_000_000;
 
     let orig_user_balance = proposal_user.account().unwrap().amount;
     let out_come = call!(
@@ -273,7 +273,7 @@ fn test_redeem_no_proposal(){
         deposit = 10_000_000_000_000_000_000_000_000
     ).assert_success();
 
-    root.borrow_runtime_mut().cur_block.block_timestamp = view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp + 31 * 3600 * 24 * 1_000_000_000;
+    root.borrow_runtime_mut().cur_block.block_timestamp = sec_to_nano(view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp_sec) + 31 * 3600 * 24 * 1_000_000_000;
 
     let out_come = call!(
         proposal_user,
@@ -297,7 +297,7 @@ fn test_redeem_not_allow(){
         deposit = 10_000_000_000_000_000_000_000_000
     ).assert_success();
 
-    root.borrow_runtime_mut().cur_block.block_timestamp = view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp + 31 * 3600 * 24 * 1_000_000_000;
+    root.borrow_runtime_mut().cur_block.block_timestamp = sec_to_nano(view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp_sec) + 31 * 3600 * 24 * 1_000_000_000;
 
     let out_come = call!(
         user,

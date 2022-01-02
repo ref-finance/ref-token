@@ -143,7 +143,7 @@ impl From<&str> for Action {
         match action {
             "approve" => Action::VoteApprove,
             "reject" => Action::VoteReject,
-            "remove" => Action::VoteNonsense,
+            "nonsense" => Action::VoteNonsense,
             _ => env::panic(b"ERR_INVALID_ACTION_KIND"),
         }
     }
@@ -156,7 +156,7 @@ impl From<&str> for Action {
 pub enum Vote {
     Approve = 0x0,
     Reject = 0x1,
-    Remove = 0x2,
+    Nonsense = 0x2,
 }
 
 impl From<Action> for Vote {
@@ -164,7 +164,7 @@ impl From<Action> for Vote {
         match action {
             Action::VoteApprove => Vote::Approve,
             Action::VoteReject => Vote::Reject,
-            Action::VoteNonsense => Vote::Remove,
+            Action::VoteNonsense => Vote::Nonsense,
         }
     }
 }

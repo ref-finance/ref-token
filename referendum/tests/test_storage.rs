@@ -27,7 +27,7 @@ fn test_storage_deposit_normal(){
     )
     .assert_success();
 
-    root.borrow_runtime_mut().cur_block.block_timestamp = view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp + 24 * 1_000_000_000;
+    root.borrow_runtime_mut().cur_block.block_timestamp = sec_to_nano(nano_to_sec(current_timestamp) + 10);
 
     let orig_user_balance = user.account().unwrap().amount;
     call!(user, referendum_contract.storage_deposit(None, None), deposit = to_yocto("0.01")).assert_success();
@@ -47,7 +47,7 @@ fn test_storage_deposit_repeat(){
     )
     .assert_success();
 
-    root.borrow_runtime_mut().cur_block.block_timestamp = view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp + 24 * 1_000_000_000;
+    root.borrow_runtime_mut().cur_block.block_timestamp = sec_to_nano(nano_to_sec(current_timestamp) + 10);
 
     let orig_user_balance = user.account().unwrap().amount;
     call!(user, referendum_contract.storage_deposit(None, None), deposit = to_yocto("0.01")).assert_success();
@@ -71,7 +71,7 @@ fn test_storage_deposit_refund(){
     )
     .assert_success();
 
-    root.borrow_runtime_mut().cur_block.block_timestamp = view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp + 24 * 1_000_000_000;
+    root.borrow_runtime_mut().cur_block.block_timestamp = sec_to_nano(nano_to_sec(current_timestamp) + 10);
 
     let orig_user_balance = user.account().unwrap().amount;
     call!(user, referendum_contract.storage_deposit(None, None), deposit = to_yocto("1")).assert_success();
@@ -97,7 +97,7 @@ fn test_storage_unregister_normal(){
         deposit = 1
     ).assert_success();
 
-    root.borrow_runtime_mut().cur_block.block_timestamp = view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp + 31 * 3600 * 24 * 1_000_000_000;
+    root.borrow_runtime_mut().cur_block.block_timestamp = sec_to_nano(view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp_sec) + 31 * 3600 * 24 * 1_000_000_000;
 
     call!(
         user,

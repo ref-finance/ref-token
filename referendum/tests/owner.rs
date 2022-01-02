@@ -29,8 +29,10 @@ fn test_owner(){
         referendum_contract.modify_genesis_timestamp(nano_to_sec(current_timestamp) + 10)
     ).assert_success();
 
+    root.borrow_runtime_mut().cur_block.block_timestamp = sec_to_nano(nano_to_sec(current_timestamp) + 10);
+
     let contract_metadata = view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>();
-    assert_eq!(contract_metadata.genesis_timestamp, sec_to_nano(nano_to_sec(current_timestamp) + 10));
+    assert_eq!(contract_metadata.genesis_timestamp_sec, nano_to_sec(current_timestamp) + 10);
 
     assert_eq!(contract_metadata.lock_amount_per_proposal.0, to_yocto("10"));
     call!(

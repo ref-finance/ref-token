@@ -94,3 +94,13 @@ pub trait Withdraw {
 pub fn nano_to_day(nano: Timestamp) -> u64 {
     nano / (3600 * 24 * 1_000_000_000)
 }
+
+pub fn calculate_ballots(current_session_remaining_days: u64, total_amount: Balance, locking_period: u32) -> Balance{
+    assert!(locking_period > 0, "ERR_ILLEGAL_LASTS");
+    let future_session_ballots = total_amount * (locking_period - 1) as u128;
+    let current_session_ballots = (U256::from(total_amount)
+        * U256::from(current_session_remaining_days)
+        / U256::from(nano_to_day(SESSION_INTERMAL)))
+    .as_u128();
+    future_session_ballots + current_session_ballots
+}
