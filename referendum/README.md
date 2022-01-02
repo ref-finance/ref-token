@@ -1,6 +1,6 @@
 # Referendum
 
-Detailed introduction to Referendum, see this [post](https://gov.ref.finance/).
+Detailed discussion about Referendum, see this [post](https://gov.ref.finance/t/product-x-referendum/384).
 
 ## Instructions
 
@@ -82,8 +82,136 @@ Here we only list some common-use interfaces:
 
 
 ### User Methods
+To lock token (XREF) and get ballot power, user need start from token contract:
+```bash
+# alice lock 100 TOKEN for 9 sessions
+near call $TOKEN ft_tranfser_call '{"receiver_id": "'$REFERENDUM'", "amount": "100'$ZERO18'", "msg": "9"}' --account_id=alice.near --amount=$YN
+```
+*Note: user can only start a new lock when there is no existing locking at his account.*   
+  
+When there is an existing locking, user can append token to it:
+```bash
+# alice append 100 TOKEN to his existing locking
+near call $TOKEN ft_tranfser_call '{"receiver_id": "'$REFERENDUM'", "amount": "100'$ZERO18'", "msg": ""}' --account_id=alice.near --amount=$YN
+```
+*Note: user can only append lock when there is a existing locking at his account.*   
+
+To withdraw token when they are unlocked, user call:
+```bash
+near call $REFERENDUM withdraw --account_id=alice.near --amount=$YN
+```
+*Note: If user wanna those token to be part of a new locking, he can directly start `ft_transfer_call` without withdrawing them first. those un-withdraw amount would auto caculate into the total locking amount.* 
+
+User can vote any InProgress referendum:
+```bash
+# action could be one of VoteApprove, VoteReject, VoteNonsense
+near call $REFERENDUM act_proposal '{"id": 0, "action": "VoteApprove"}' --account_id=alice.near
+```
+*Note: user can only vote once per proposal and the ballot power would auto renew if user append locking more token and get more ballot.*  
 
 ### View Methods
+#### **To view contract info:**
+```bash
+near view $REFERENDUM contract_metadata
+```
+The return value structure is:
+```rust
+pub struct ContractMetadata {
+    /// the owner account id of contract
+    pub owner_id: AccountId,
+    /// accept lock token account id
+    pub locked_token: AccountId,
+    /// the launch timestamp in seconds
+    pub genesis_timestamp_sec: u32,
+    /// current session id (start from 0)
+    pub cur_session_id: u32,
+    /// current total ballot amount (calculate at call time)
+    pub cur_total_ballot: U128,
+    /// current locking token amount (include those expired but hasn't unlock by user)
+    pub cur_lock_amount: U128,
+    /// the availabe proposal id for new proposal
+    pub last_proposal_id: u32,
+    /// lock near amount for endorsement a proposal
+    pub lock_amount_per_proposal: U128,
+    /// current account number in contract
+    pub account_number: u64,
+    /// a list of [Relative, Absolute] in which each item is formated as 
+    /// [{"numerator": n, "denominator": m}, {"numerator": n, "denominator": m}]
+    pub vote_policy: Vec<VotePolicy>,
+    /// in format as {"numerator": n, "denominator": m}
+    pub nonsense_threshold: Rational,
+}
+```
+
+#### **To view proposal info:**
+
+```bash
+# returns `ProposalInfo` structure or null
+near view $REFERENDUM get_proposal_info '{"proposal_id": 0}'
+
+# returns array of `ProposalInfo`
+near view $REFERENDUM get_proposals_in_session '{"session_id": 0}'
+
+# returns array of proposal id
+near view $REFERENDUM get_proposal_ids_in_session '{"session_id": 0}'
+```
+The `ProposalInfo` structure is:
+```rust
+pub struct ProposalInfo{
+    pub id: u32,
+    pub proposer: AccountId,
+    /// near amount for endorsement
+    pub lock_amount: U128,
+    pub description: String,
+    /// one of the following:
+    /// "VotePolicy": {"Relative": [{"numerator": n, "denominator": m}, {"numerator": n, "denominator": m}]}
+    /// "VotePolicy": {"Absolute": [{"numerator": n, "denominator": m}, {"numerator": n, "denominator": m}]}
+    pub vote_policy: proposals::VotePolicy,
+    /// currently would only be "Vote"
+    pub kind: proposals::ProposalKind,
+    /// one of the following:
+    /// "WarmUp", "InProgress", "Approved", "Rejected", "Nonsense", "Expired"
+    pub status: proposals::ProposalStatus,
+    /// [Approve_count, Reject_count, Nonsense_count, Total_ballots]
+    pub vote_counts: [U128; 4],
+    /// The session this proposal is valid in
+    pub session_id: u32,
+    /// the start time = session_begin_time + start_offset
+    pub start_offset_sec: u32,
+    /// the proposal max valid period in seconds
+    pub lasts_sec: u32,
+}
+```
+#### **To get account info**
+For basic account info:
+```bash
+# return `AccountInfo` or null
+near view $REFERENDUM get_account_info '{"account_id": "alice.near"}'
+```
+The `AccountInfo` is:
+```rust
+pub struct AccountInfo {
+    /// locked token (XREF) amount
+    pub locking_amount: U128,
+    /// ballot amount (calculate at call time)
+    pub ballot_amount: U128,
+    /// unlock at the begin of this session, meanwhile ballots reset to zero
+    pub unlocking_session_id: u32,
+}
+```
+For account votes:
+```bash
+# return array of `HumanReadableAccountVote`
+near view $REFERENDUM get_account_proposals_in_session '{"account_id": "alice.near", "session_id": 0}'
+```
+The `HumanReadableAccountVote` is:
+```rust
+pub struct HumanReadableAccountVote {
+    pub proposal_id: u32,
+    pub vote: Vote,
+    pub amount: U128,
+}
+```
 
 ## Development
 1. Install `rustup` via [https://rustup.rs/](https://rustup.rs/)
