@@ -235,8 +235,4 @@ To deploy to TestNet, you can use:
 ```bash
 near dev-deploy ../res/referendum.wasm
 ```
-<<<<<<< HEAD
 This will output on the contract ID it deployed.
-=======
-This will output on the contract ID it deployed.
->>>>>>> add_lock_calc_and_storage
