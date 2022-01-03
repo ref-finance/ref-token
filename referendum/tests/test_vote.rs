@@ -71,7 +71,7 @@ fn test_vote(){
     assert_eq!(contract_metadata.cur_total_ballot.0, to_yocto("60"));
 
     //proposal begin
-    root.borrow_runtime_mut().cur_block.block_timestamp = view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp + 1 * 3600 * 24 * 1_000_000_000;
+    root.borrow_runtime_mut().cur_block.block_timestamp = sec_to_nano(view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp_sec) + 1 * 3600 * 24 * 1_000_000_000;
     
     //vote_user1 vote approve to proposal 0
     let orig_user_balance = proposal_user.account().unwrap().amount;
@@ -79,7 +79,7 @@ fn test_vote(){
         vote_user1,
         referendum_contract.act_proposal(0, "approve".into(), Some("approve".to_string()))
     );    
-    assert!(out_come.unwrap_json::<bool>());
+    assert_eq!(out_come.unwrap_json::<U128>().0, to_yocto("30"));
     assert_eq!(proposal_user.account().unwrap().amount - orig_user_balance, to_yocto("10"));
 
     let proposal_info = view!(referendum_contract.get_proposal_info(0)).unwrap_json::<ProposalInfo>();
@@ -94,7 +94,7 @@ fn test_vote(){
         vote_user1,
         referendum_contract.act_proposal(1, "reject".into(), Some("reject".to_string()))
     );    
-    assert!(out_come.unwrap_json::<bool>());
+    assert_eq!(out_come.unwrap_json::<U128>().0, to_yocto("30"));
     assert_eq!(proposal_user.account().unwrap().amount - orig_user_balance, 0);
 
     let proposal_info = view!(referendum_contract.get_proposal_info(1)).unwrap_json::<ProposalInfo>();
@@ -110,7 +110,7 @@ fn test_vote(){
         vote_user2,
         referendum_contract.act_proposal(1, "reject".into(), Some("reject".to_string()))
     );    
-    assert!(out_come.unwrap_json::<bool>());
+    assert_eq!(out_come.unwrap_json::<U128>().0, to_yocto("30"));
     assert_eq!(proposal_user.account().unwrap().amount - orig_user_balance, to_yocto("10"));
 
     let proposal_info = view!(referendum_contract.get_proposal_info(1)).unwrap_json::<ProposalInfo>();
@@ -124,20 +124,20 @@ fn test_vote(){
     let orig_user_balance = proposal_user.account().unwrap().amount;
     let out_come = call!(
         vote_user1,
-        referendum_contract.act_proposal(2, "remove".into(), Some("remove".to_string()))
+        referendum_contract.act_proposal(2, "nonsense".into(), Some("nonsense".to_string()))
     );    
-    assert!(out_come.unwrap_json::<bool>());
+    assert_eq!(out_come.unwrap_json::<U128>().0, to_yocto("30"));
 
     let out_come = call!(
         vote_user2,
-        referendum_contract.act_proposal(2, "remove".into(), Some("remove".to_string()))
+        referendum_contract.act_proposal(2, "nonsense".into(), Some("nonsense".to_string()))
     );    
-    assert!(out_come.unwrap_json::<bool>());
+    assert_eq!(out_come.unwrap_json::<U128>().0, to_yocto("30"));
     assert_eq!(proposal_user.account().unwrap().amount - orig_user_balance, 0);
 
     let proposal_info = view!(referendum_contract.get_proposal_info(2)).unwrap_json::<ProposalInfo>();
     println!("{:?}", proposal_info);
-    assert_eq!(proposal_info.status, ProposalStatus::Removed);
+    assert_eq!(proposal_info.status, ProposalStatus::Nonsense);
     assert_eq!(proposal_info.lock_amount.0, to_yocto("10"));
     assert_eq!(proposal_info.vote_counts, [U128(0), U128(0), U128(to_yocto("60")), U128(to_yocto("60"))]);
 }
@@ -192,7 +192,7 @@ fn test_vote_append(){
     assert_eq!(contract_metadata.cur_total_ballot.0, to_yocto("90"));
 
     //proposal begin
-    root.borrow_runtime_mut().cur_block.block_timestamp = view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp + 3600 * 21 * 1_000_000_000;
+    root.borrow_runtime_mut().cur_block.block_timestamp = sec_to_nano(view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp_sec) + 3600 * 21 * 1_000_000_000;
     
     //vote_user1 vote approve to proposal 0
     let orig_user_balance = proposal_user.account().unwrap().amount;
@@ -200,7 +200,7 @@ fn test_vote_append(){
         vote_user1,
         referendum_contract.act_proposal(0, "approve".into(), Some("approve".to_string()))
     );    
-    assert!(out_come.unwrap_json::<bool>());
+    assert_eq!(out_come.unwrap_json::<U128>().0, to_yocto("30"));
     assert_eq!(proposal_user.account().unwrap().amount - orig_user_balance, 0);
 
     let proposal_info = view!(referendum_contract.get_proposal_info(0)).unwrap_json::<ProposalInfo>();
@@ -236,7 +236,7 @@ fn test_vote_append(){
         vote_user1,
         referendum_contract.act_proposal(1, "reject".into(), Some("reject".to_string()))
     );    
-    assert!(out_come.unwrap_json::<bool>());
+    assert_eq!(out_come.unwrap_json::<U128>().0, to_yocto("60"));
     assert_eq!(proposal_user.account().unwrap().amount - orig_user_balance, 0);
 
     let proposal_info = view!(referendum_contract.get_proposal_info(1)).unwrap_json::<ProposalInfo>();
@@ -313,7 +313,7 @@ fn test_vote_append_mutli(){
     assert_eq!(contract_metadata.cur_total_ballot.0, to_yocto("90"));
 
     //proposal begin
-    root.borrow_runtime_mut().cur_block.block_timestamp = view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp + 3600 * 21 * 1_000_000_000;
+    root.borrow_runtime_mut().cur_block.block_timestamp = sec_to_nano(view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp_sec) + 3600 * 21 * 1_000_000_000;
     assert_eq!(view!(referendum_contract.get_proposal_ids_in_session(0)).unwrap_json::<Vec<u64>>(), [0,1]);
     
     //vote_user1 vote approve to proposal 0
@@ -322,7 +322,7 @@ fn test_vote_append_mutli(){
         vote_user1,
         referendum_contract.act_proposal(0, "approve".into(), Some("approve".to_string()))
     );    
-    assert!(out_come.unwrap_json::<bool>());
+    assert_eq!(out_come.unwrap_json::<U128>().0, to_yocto("30"));
     assert_eq!(proposal_user.account().unwrap().amount - orig_user_balance, 0);
 
     let proposal_info = view!(referendum_contract.get_proposal_info(0)).unwrap_json::<ProposalInfo>();
@@ -337,7 +337,7 @@ fn test_vote_append_mutli(){
         vote_user1,
         referendum_contract.act_proposal(1, "reject".into(), Some("reject".to_string()))
     );    
-    assert!(out_come.unwrap_json::<bool>());
+    assert_eq!(out_come.unwrap_json::<U128>().0, to_yocto("30"));
     assert_eq!(proposal_user.account().unwrap().amount - orig_user_balance, 0);
 
     let proposal_info = view!(referendum_contract.get_proposal_info(1)).unwrap_json::<ProposalInfo>();
@@ -458,13 +458,13 @@ fn test_vote_already_vote(){
         deposit = 1
     ).assert_success();
 
-    root.borrow_runtime_mut().cur_block.block_timestamp = view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp + 1 * 3600 * 24 * 1_000_000_000;
+    root.borrow_runtime_mut().cur_block.block_timestamp = sec_to_nano(view!(referendum_contract.contract_metadata()).unwrap_json::<ContractMetadata>().genesis_timestamp_sec) + 1 * 3600 * 24 * 1_000_000_000;
 
     let out_come = call!(
         vote_user1,
         referendum_contract.act_proposal(0, "approve".into(), Some("approve".to_string()))
     );   
-    assert!(out_come.unwrap_json::<bool>());
+    assert_eq!(out_come.unwrap_json::<U128>().0, to_yocto("30"));
     
     let out_come = call!(
         vote_user1,

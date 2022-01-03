@@ -25,11 +25,15 @@ pub struct SessionState {
 pub struct ContractMetadata {
     pub owner_id: AccountId,
     pub locked_token: AccountId,
-    pub genesis_timestamp: u64,
-    pub cur_session: usize,
+    pub genesis_timestamp_sec: u32,
+    pub cur_session_id: u32,
     pub cur_total_ballot: U128,
-    pub last_proposal_id: u64,
+    pub cur_lock_amount: U128,
+    pub last_proposal_id: u32,
     pub lock_amount_per_proposal: U128,
+    pub account_number: u64,
+    pub vote_policy: Vec<VotePolicy>,
+    pub nonsense_threshold: Rational,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -45,13 +49,14 @@ pub enum ProposalStatus {
     InProgress,
     Approved,
     Rejected,
-    Removed,
+    Nonsense,
     Expired,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 #[serde(crate = "near_sdk::serde")]
 pub struct ProposalInfo{
+    pub id: u32,
     pub proposer: AccountId,
     pub lock_amount: U128,
     pub description: String,
@@ -60,8 +65,8 @@ pub struct ProposalInfo{
     pub status: ProposalStatus,
     pub vote_counts: [U128; 4],
     pub session_id: u32,
-    pub start_offset: u64,
-    pub lasts: u64,
+    pub start_offset_sec: u32,
+    pub lasts_sec: u32,
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone)]
