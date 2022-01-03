@@ -82,7 +82,7 @@ impl StorageManagement for Contract {
         if self.data().accounts.contains_key(&account_id.into()) {
             Some(StorageBalance {
                 total: U128(STORAGE_BALANCE_MIN_BOUND),
-                available: U128(STORAGE_BALANCE_MIN_BOUND),
+                available: U128(0),
             })
         }else{
             None
