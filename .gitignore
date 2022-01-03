@@ -23,3 +23,4 @@ neardev
 
 res/ref_token_local.wasm
 res/xref_token_local.wasm
+res/referendum_local.wasm

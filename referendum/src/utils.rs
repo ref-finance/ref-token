@@ -1,10 +1,18 @@
 //! Utils stores pub info 
 
+use std::ops::Mul;
+
 use near_sdk::json_types::U128;
-use near_sdk::{ext_contract, Gas, Balance, Timestamp};
+use near_sdk::{ext_contract, Gas, Timestamp, Balance};
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::serde::{Deserialize, Serialize};
-use crate::proposals::{VotePolicy, Vote};
+use uint::construct_uint;
+
+construct_uint! {
+    /// 256-bit unsigned integer.
+    pub struct U256(4);
+}
+use crate::proposals::VotePolicy;
 
 /// Attach no deposit.
 pub const NO_DEPOSIT: u128 = 0;
@@ -22,6 +30,7 @@ pub const SESSION_INTERMAL: u64 = 3600 * 24 * 30 * 1_000_000_000;
 /// make the default launch time to be 30 days after contract initiation
 pub const DEFAULT_GENESIS_OFFSET: u64 = 3600 * 24 * 30 * 1_000_000_000;
 
+pub const STORAGE_BALANCE_MIN_BOUND: u128 = 10_000_000_000_000_000_000_000;
 /// default locking amount is 10 near for each proposal
 pub const DEFAULT_LOCK_NEAR_AMOUNT_FOR_PROPOSAL: Balance = 10_000_000_000_000_000_000_000_000;
 
@@ -47,11 +56,17 @@ pub struct Rational {
     denominator: u32,
 }
 
+impl From<Vec<u8>> for Rational {
+    fn from(content: Vec<u8>) -> Self {
+        Rational::try_from_slice(&content).unwrap()
+    }
+}
+
 impl Rational {
 
     pub fn pass(&self, num: &Balance, denom: &Balance) -> bool {
-        // TODO: implement using U256 to judge num/denom >= self
-        true
+        U256::from(*num).mul(U256::from(self.denominator)).
+            ge(&U256::from(self.numerator).mul(U256::from(*denom)))
     }
 
     pub fn is_valid(&self) -> bool {
@@ -59,8 +74,8 @@ impl Rational {
     }
 }
 
-pub fn nano_to_sec(nano: Timestamp) -> u64 {
-    nano / 1_000_000_000
+pub fn nano_to_sec(nano: Timestamp) -> u32 {
+    (nano / 1_000_000_000) as u32
 }
 
 pub fn sec_to_nano(sec: u32) -> Timestamp {
@@ -68,10 +83,24 @@ pub fn sec_to_nano(sec: u32) -> Timestamp {
 }
 
 #[ext_contract(ext_self)]
-pub trait Unlock {
-    fn callback_post_unlock(
+pub trait Withdraw {
+    fn callback_post_withdraw(
         &mut self,
         sender_id: AccountId,
         amount: U128,
     );
+}
+
+pub fn nano_to_day(nano: Timestamp) -> u64 {
+    nano / (3600 * 24 * 1_000_000_000)
+}
+
+pub fn calculate_ballots(current_session_remaining_days: u64, total_amount: Balance, locking_period: u32) -> Balance{
+    assert!(locking_period > 0, "ERR_ILLEGAL_LASTS");
+    let future_session_ballots = total_amount * (locking_period - 1) as u128;
+    let current_session_ballots = (U256::from(total_amount)
+        * U256::from(current_session_remaining_days)
+        / U256::from(nano_to_day(SESSION_INTERMAL)))
+    .as_u128();
+    future_session_ballots + current_session_ballots
 }
