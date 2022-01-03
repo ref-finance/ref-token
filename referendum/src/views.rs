@@ -201,6 +201,7 @@ impl Contract {
         ret   
     }
 
+    // TODO: maybe unnecessary to get session info
     pub fn get_session_state(&self, session_idx: usize) -> SessionState {
         self.data().sessions[session_idx].into()
     }
