@@ -38,10 +38,14 @@ pub struct ContractMetadata {
     pub owner_id: AccountId,
     /// backend locked token id
     pub locked_token: AccountId,
-    /// reward token that haven't distribute yet
+    /// at prev_distribution_time, reward token that haven't distribute yet
     pub undistribute_reward: U128,
-    /// backend locked token amount
+    /// at prev_distribution_time, backend staked token amount
     pub locked_token_amount: U128,
+    // at call time, the amount of undistributed reward
+    pub cur_undistribute_reward: U128,
+    // at call time, the amount of backend staked token
+    pub cur_locked_token_amount: U128,
     /// XREF token supply
     pub supply: U128,
     /// previous reward distribution time in nano secs
@@ -80,7 +84,7 @@ near call $XREF_TOKEN new '{"owner_id": "'$XREF_OWNER'", "locked_token": "'$REF_
 ```bash
 # contract metadata gives contract details
 near view $XREF_TOKEN contract_metadata
-# get the X-REF / REF price in 1e8
+# get the REF / X-REF price in 1e8
 near view $XREF_TOKEN get_virtual_price
 
 # ************* from NEP-141 *************
@@ -116,5 +120,6 @@ near call $XREF_TOKEN unstake '{"amount": "8'$ZERO18'"}' --account_id=alice.test
 
 #### owner modify reward_per_sec
 ```bash
-near call $XREF_TOKEN modify_reward_per_sec '{"reward_per_sec": "1'$ZERO18'"}' --account_id=$XREF_OWNER --gas=$GAS100
+near call $XREF_TOKEN modify_reward_per_sec '{"reward_per_sec": "1'$ZERO18'", "distribute_before_change": true}' --account_id=$XREF_OWNER --gas=$GAS100
 ```
+note: if `distribute_before_change` is true, contract will sync up reward distribution using the old `reward_per_sec` at call time before changing to the new one.

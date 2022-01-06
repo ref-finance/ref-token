@@ -32,16 +32,23 @@ impl Contract {
 
     /// return the amount of to be distribute reward this time
     pub(crate) fn try_distribute_reward(&self, cur_timestamp: Timestamp) -> Balance {
-        assert!(cur_timestamp >= self.prev_distribution_time, "Err: cur time less than prev time");
-        let ideal_amount = self.reward_per_sec * (nano_to_sec(cur_timestamp) - nano_to_sec(self.prev_distribution_time)) as u128;
-        min(ideal_amount, self.undistribute_reward)
+        let prev_secs = nano_to_sec(self.prev_distribution_time);
+        let cur_secs = nano_to_sec(cur_timestamp);
+        if cur_secs > prev_secs {
+            let ideal_amount = self.reward_per_sec * (cur_secs - prev_secs) as u128;
+            min(ideal_amount, self.undistribute_reward)
+        } else {
+            0
+        }
     }
 
     pub(crate) fn distribute_reward(&mut self) {
         let cur_time = env::block_timestamp();
         let new_reward = self.try_distribute_reward(cur_time);
-        self.undistribute_reward -= new_reward;
-        self.locked_token_amount += new_reward;
+        if new_reward > 0 {
+            self.undistribute_reward -= new_reward;
+            self.locked_token_amount += new_reward;
+        }
         self.prev_distribution_time = cur_time;
     }
 }

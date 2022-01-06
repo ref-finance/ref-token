@@ -18,7 +18,7 @@ fn test_reward(){
 
     call!(
         owner,
-        xref_contract.modify_reward_per_sec(to_yocto("1").into())
+        xref_contract.modify_reward_per_sec(to_yocto("1").into(), true)
     )
     .assert_success();
 
@@ -47,7 +47,7 @@ fn test_reward(){
     total_supply += to_yocto("10");
 
     let xref_info2 = view!(xref_contract.contract_metadata()).unwrap_json::<ContractMetadata>();
-    let time_diff = nano_to_sec(xref_info2.prev_distribution_time) - nano_to_sec(xref_info1.prev_distribution_time);
+    let time_diff = xref_info2.prev_distribution_time_in_sec - xref_info1.prev_distribution_time_in_sec;
     total_reward -= time_diff as u128 * xref_info2.reward_per_sec.0;
     total_locked += time_diff as u128 * xref_info2.reward_per_sec.0;
     assert_xref(&xref_info2, total_reward, total_locked, total_supply);
@@ -70,7 +70,7 @@ fn test_reward(){
     total_reward += to_yocto("100");
 
     let xref_info4 = view!(xref_contract.contract_metadata()).unwrap_json::<ContractMetadata>();
-    let time_diff = nano_to_sec(xref_info4.prev_distribution_time) - nano_to_sec(xref_info3.prev_distribution_time);
+    let time_diff = xref_info4.prev_distribution_time_in_sec - xref_info3.prev_distribution_time_in_sec;
     total_reward -= time_diff as u128 * xref_info4.reward_per_sec.0;
     total_locked += time_diff as u128 * xref_info4.reward_per_sec.0;
     assert_xref(&xref_info4, total_reward, total_locked, total_supply);
@@ -86,7 +86,7 @@ fn test_reward(){
     .assert_success();
 
     let xref_info5 = view!(xref_contract.contract_metadata()).unwrap_json::<ContractMetadata>();
-    let time_diff = nano_to_sec(xref_info5.prev_distribution_time) - nano_to_sec(xref_info4.prev_distribution_time);
+    let time_diff = xref_info5.prev_distribution_time_in_sec - xref_info4.prev_distribution_time_in_sec;
     total_reward -= time_diff as u128 * xref_info5.reward_per_sec.0;
     total_locked += time_diff as u128 * xref_info5.reward_per_sec.0;
 
@@ -117,7 +117,7 @@ fn test_reward(){
     total_supply += to_yocto("10");
 
     let xref_info7 = view!(xref_contract.contract_metadata()).unwrap_json::<ContractMetadata>();
-    let time_diff = nano_to_sec(xref_info7.prev_distribution_time) - nano_to_sec(xref_info6.prev_distribution_time);
+    let time_diff = xref_info7.prev_distribution_time_in_sec - xref_info6.prev_distribution_time_in_sec;
     assert!(total_reward < time_diff as u128 * xref_info7.reward_per_sec.0);
     total_locked += total_reward;
     total_reward -= total_reward;

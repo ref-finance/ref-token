@@ -15,8 +15,11 @@ impl Contract {
         self.owner_id.clone()
     }
 
-    pub fn modify_reward_per_sec(&mut self, reward_per_sec: U128) {
+    pub fn modify_reward_per_sec(&mut self, reward_per_sec: U128, distribute_before_change: bool) {
         self.assert_owner();
+        if distribute_before_change {
+            self.distribute_reward();
+        }
         self.reward_per_sec = reward_per_sec.into();
     }
 

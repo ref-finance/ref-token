@@ -41,7 +41,7 @@ fn test_upgrade() {
     .assert_success();
     let metadata = view!(xref.contract_metadata()).unwrap_json::<ContractMetadata>();
     // println!("{:#?}", metadata);
-    assert_eq!(metadata.version, "1.0.0".to_string());
+    assert_eq!(metadata.version, "1.0.1".to_string());
 
     // Upgrade to the same code migration is skipped.
     root.call(
