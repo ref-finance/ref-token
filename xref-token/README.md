@@ -122,4 +122,4 @@ near call $XREF_TOKEN unstake '{"amount": "8'$ZERO18'"}' --account_id=alice.test
 ```bash
 near call $XREF_TOKEN modify_reward_per_sec '{"reward_per_sec": "1'$ZERO18'", "distribute_before_change": true}' --account_id=$XREF_OWNER --gas=$GAS100
 ```
-note: if `distribute_before_change` is true, contract will sync up reward distribution using the old `reward_per_sec` at call time before changing to the new one.
+Note: If `distribute_before_change` is true, contract will sync up reward distribution using the old `reward_per_sec` at call time before changing to the new one.
