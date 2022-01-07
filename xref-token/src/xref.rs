@@ -5,7 +5,7 @@ use near_contract_standards::fungible_token::receiver::FungibleTokenReceiver;
 use near_contract_standards::fungible_token::core_impl::ext_fungible_token;
 use near_sdk::json_types::U128;
 use near_sdk::{assert_one_yocto, env, log, Promise, PromiseResult};
-use std::cmp::min;
+use std::cmp::{max, min};
 
 impl Contract {
     pub fn internal_stake(&mut self, account_id: &AccountId, amount: Balance) {
@@ -47,7 +47,7 @@ impl Contract {
             self.undistribute_reward -= new_reward;
             self.locked_token_amount += new_reward;
         }
-        self.prev_distribution_time_in_sec = cur_time;
+        self.prev_distribution_time_in_sec = max(cur_time, self.reward_genesis_time_in_sec);
     }
 }
 
