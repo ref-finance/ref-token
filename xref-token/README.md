@@ -10,7 +10,9 @@ redeemed_REF = unstaked_XREF * P,
 where P = locked_REF_token_amount / XREF_total_supply. 
 
 * Anyone can add REF as reward for those locked REF users.  
-locked_REF_token amount would increase `reward_per_sec` per second.  
+locked_REF_token amount would increase `reward_per_sec` per second after `reward_genesis_time_in_sec`.  
+
+* Owner can modify `reward_genesis_time_in_sec` before it past.
 
 * Owner can modify `reward_per_sec`.
 
@@ -79,6 +81,7 @@ export XREF_TOKEN=xref.token
 export XREF_OWNER=xref.owner
 near call $XREF_TOKEN new '{"owner_id": "'$XREF_OWNER'", "locked_token": "'$REF_TOKEN'"}' --account_id=$XREF_TOKEN
 ```
+Note: It would set the reward genesis time into 30 days from then on.
 
 ### Usage
 
