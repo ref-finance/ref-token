@@ -8,10 +8,6 @@ construct_uint! {
     pub struct U256(4);
 }
 
-// pub fn nano_to_sec(nano: u64) -> u64 {
-//     nano / 1_000_000_000
-// }
-
 pub fn assert_xref(
     current_xref: &ContractMetadata,
     undistribute_reward: u128,
