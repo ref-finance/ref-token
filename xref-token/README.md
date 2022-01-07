@@ -48,8 +48,10 @@ pub struct ContractMetadata {
     pub cur_locked_token_amount: U128,
     /// XREF token supply
     pub supply: U128,
-    /// previous reward distribution time in nano secs
-    pub prev_distribution_time: u64,
+    /// previous reward distribution time in secs
+    pub prev_distribution_time_in_sec: u32,
+    /// reward start distribution time in secs
+    pub reward_genesis_time_in_sec: u32,
     /// reward token amount per seconds
     pub reward_per_sec: U128,
 }
@@ -117,6 +119,13 @@ near call $REF_TOKEN ft_transfer_call '{"receiver_id": "'$XREF_TOKEN'", "amount"
 ```bash
 near call $XREF_TOKEN unstake '{"amount": "8'$ZERO18'"}' --account_id=alice.testnet --amount=$YN --gas=$GAS100
 ```
+
+#### owner reset reward genesis time
+```bash
+# set to 2022-01-22 01:00:00 UTC time
+near call $XREF_TOKEN reset_reward_genesis_time_in_sec '{"reward_genesis_time_in_sec": 1642813200}' --account_id=$XREF_OWNER
+```
+Note: would return false if already past old genesis time or the new genesis time is a past time.
 
 #### owner modify reward_per_sec
 ```bash

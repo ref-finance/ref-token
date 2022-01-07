@@ -1,7 +1,6 @@
 //! View functions for the contract.
 
 use crate::*;
-use crate::utils::nano_to_sec;
 use near_sdk::serde::{Deserialize, Serialize};
 
 #[derive(Serialize)]
@@ -22,15 +21,16 @@ pub struct ContractMetadata {
     // cur XREF supply
     pub supply: U128,
     pub prev_distribution_time_in_sec: u32,
+    pub reward_genesis_time_in_sec: u32,
     pub reward_per_sec: U128,
 }
 
 #[near_bindgen]
 impl Contract {
-
     /// Return contract basic info
     pub fn contract_metadata(&self) -> ContractMetadata {
-        let to_be_distributed = self.try_distribute_reward(env::block_timestamp());
+        let to_be_distributed =
+            self.try_distribute_reward(nano_to_sec(env::block_timestamp()));
         ContractMetadata {
             version: env!("CARGO_PKG_VERSION").to_string(),
             owner_id: self.owner_id.clone(),
@@ -40,7 +40,8 @@ impl Contract {
             cur_undistribute_reward: (self.undistribute_reward - to_be_distributed).into(),
             cur_locked_token_amount: (self.locked_token_amount + to_be_distributed).into(),
             supply: self.ft.total_supply.into(),
-            prev_distribution_time_in_sec: nano_to_sec(self.prev_distribution_time) as u32,
+            prev_distribution_time_in_sec: self.prev_distribution_time_in_sec,
+            reward_genesis_time_in_sec: self.reward_genesis_time_in_sec,
             reward_per_sec: self.reward_per_sec.into(),
         }
     }
@@ -50,8 +51,11 @@ impl Contract {
         if self.ft.total_supply == 0 {
             100_000_000.into()
         } else {
-            ((self.locked_token_amount + self.try_distribute_reward(env::block_timestamp())) * 100_000_000 / self.ft.total_supply).into()
+            ((self.locked_token_amount
+                + self.try_distribute_reward(nano_to_sec(env::block_timestamp())))
+                * 100_000_000
+                / self.ft.total_supply)
+                .into()
         }
-        
     }
 }

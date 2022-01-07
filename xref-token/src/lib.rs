@@ -10,7 +10,9 @@ use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::json_types::{ValidAccountId, U128};
 // Needed by `impl_fungible_token_core` for old Rust.
 #[allow(unused_imports)]
-use near_sdk::{env, near_bindgen, AccountId, Balance, PanicOnDefault, PromiseOrValue, Timestamp};
+use near_sdk::{env, near_bindgen, AccountId, Balance, PanicOnDefault, PromiseOrValue};
+use crate::utils::DURATION_30DAYS_IN_SEC;
+pub use crate::utils::nano_to_sec;
 pub use crate::views::ContractMetadata;
 
 mod xref;
@@ -30,9 +32,10 @@ pub struct Contract {
     pub undistribute_reward: Balance,
     /// locked amount
     pub locked_token_amount: Balance,
-    /// the previous distribution time in nano-seconds
-    pub prev_distribution_time: Timestamp,
-
+    /// the previous distribution time in seconds
+    pub prev_distribution_time_in_sec: u32,
+    /// when would the reward starts to distribute
+    pub reward_genesis_time_in_sec: u32,
     pub reward_per_sec: Balance,
 }
 
@@ -40,13 +43,15 @@ pub struct Contract {
 impl Contract {
     #[init]
     pub fn new(owner_id: ValidAccountId, locked_token: ValidAccountId) -> Self {
+        let initial_reward_genisis_time = DURATION_30DAYS_IN_SEC + nano_to_sec(env::block_timestamp());
         Contract {
             ft: FungibleToken::new(b"a".to_vec()),
             owner_id: owner_id.into(),
             locked_token: locked_token.into(),
             undistribute_reward: 0,
             locked_token_amount: 0,
-            prev_distribution_time: env::block_timestamp(),
+            prev_distribution_time_in_sec: initial_reward_genisis_time,
+            reward_genesis_time_in_sec: initial_reward_genisis_time,
             reward_per_sec: 0,
         }
     }

@@ -23,6 +23,18 @@ impl Contract {
         self.reward_per_sec = reward_per_sec.into();
     }
 
+    pub fn reset_reward_genesis_time_in_sec(&mut self, reward_genesis_time_in_sec: u32) -> bool {
+        self.assert_owner();
+        let cur_time = nano_to_sec(env::block_timestamp());
+        if  reward_genesis_time_in_sec > cur_time && self.reward_genesis_time_in_sec > cur_time {
+            self.reward_genesis_time_in_sec = reward_genesis_time_in_sec;
+            self.prev_distribution_time_in_sec = reward_genesis_time_in_sec;
+            true
+        } else {
+            false
+        }
+    }
+
     pub(crate) fn assert_owner(&self) {
         assert_eq!(
             env::predecessor_account_id(),
