@@ -12,7 +12,7 @@ where P = locked_REF_token_amount / XREF_total_supply.
 * Anyone can add REF as reward for those locked REF users.  
 locked_REF_token amount would increase `reward_per_sec` per second after `reward_genesis_time_in_sec`.  
 
-* Owner can modify `reward_genesis_time_in_sec` before it past.
+* Owner can modify `reward_genesis_time_in_sec` before it passed.
 
 * Owner can modify `reward_per_sec`.
 
