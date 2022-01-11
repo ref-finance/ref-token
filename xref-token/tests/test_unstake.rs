@@ -27,15 +27,23 @@ fn test_unstake(){
 
     call!(
         user,
-        xref_contract.unstake(to_yocto("10").into()),
+        xref_contract.unstake(to_yocto("9").into()),
         deposit = 1
     )
     .assert_success();
 
-    assert_eq!(to_yocto("100"), view!(ref_contract.ft_balance_of(user.valid_account_id())).unwrap_json::<U128>().0);
+    assert_eq!(to_yocto("99"), view!(ref_contract.ft_balance_of(user.valid_account_id())).unwrap_json::<U128>().0);
     let current_xref_info = view!(xref_contract.contract_metadata()).unwrap_json::<ContractMetadata>();
-    assert_xref(&current_xref_info, 0, 0, 0);
+    assert_xref(&current_xref_info, 0, to_yocto("1"), to_yocto("1"));
     assert_eq!(100000000_u128, view!(xref_contract.get_virtual_price()).unwrap_json::<U128>().0);
+
+    let out_come = call!(
+        user,
+        xref_contract.unstake(to_yocto("1").into()),
+        deposit = 1
+    );
+    assert_eq!(get_error_count(&out_come), 1);
+    assert!(get_error_status(&out_come).contains("ERR_KEEP_AT_LEAST_ONE_XREF"));
 }
 
 #[test]

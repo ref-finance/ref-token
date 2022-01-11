@@ -74,6 +74,7 @@ impl Contract {
         let unlocked = (U256::from(amount) * U256::from(self.locked_token_amount) / U256::from(self.ft.total_supply)).as_u128();
 
         self.ft.internal_withdraw(&account_id, amount);
+        assert!(self.ft.total_supply >= 10u128.pow(18), "ERR_KEEP_AT_LEAST_ONE_XREF");
         self.locked_token_amount -= unlocked;
 
         log!("Withdraw {} NEAR from {}", amount, account_id);
