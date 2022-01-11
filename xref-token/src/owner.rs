@@ -23,16 +23,16 @@ impl Contract {
         self.reward_per_sec = reward_per_sec.into();
     }
 
-    pub fn reset_reward_genesis_time_in_sec(&mut self, reward_genesis_time_in_sec: u32) -> bool {
+    pub fn reset_reward_genesis_time_in_sec(&mut self, reward_genesis_time_in_sec: u32) {
         self.assert_owner();
         let cur_time = nano_to_sec(env::block_timestamp());
-        if  reward_genesis_time_in_sec > cur_time && self.reward_genesis_time_in_sec > cur_time {
-            self.reward_genesis_time_in_sec = reward_genesis_time_in_sec;
-            self.prev_distribution_time_in_sec = reward_genesis_time_in_sec;
-            true
-        } else {
-            false
+        if reward_genesis_time_in_sec < cur_time {
+            env::panic(b"ERR_RESET_TIME_IS_PAST_TIME");
+        } else if self.reward_genesis_time_in_sec < cur_time {
+            env::panic(b"ERR_REWARD_GENESIS_TIME_PASSED");
         }
+        self.reward_genesis_time_in_sec = reward_genesis_time_in_sec;
+        self.prev_distribution_time_in_sec = reward_genesis_time_in_sec;
     }
 
     pub(crate) fn assert_owner(&self) {

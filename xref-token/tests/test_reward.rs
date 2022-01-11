@@ -25,11 +25,10 @@ fn test_reward(){
     assert_eq!(xref_info.reward_per_sec.0, to_yocto("1"));
 
     let current_timestamp = root.borrow_runtime_mut().cur_block.block_timestamp;
-    let out_come = call!(
+    call!(
         owner,
         xref_contract.reset_reward_genesis_time_in_sec(nano_to_sec(current_timestamp) + 10)
-    );
-    assert!(out_come.unwrap_json::<bool>());
+    ).assert_success();
     let xref_info = view!(xref_contract.contract_metadata()).unwrap_json::<ContractMetadata>();
     assert_eq!(xref_info.reward_genesis_time_in_sec, nano_to_sec(current_timestamp) + 10);
     
