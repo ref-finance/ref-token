@@ -23,6 +23,8 @@ pub struct ContractMetadata {
     pub prev_distribution_time_in_sec: u32,
     pub reward_genesis_time_in_sec: u32,
     pub reward_per_sec: U128,
+    /// current account number in contract
+    pub account_number: u64,
 }
 
 #[near_bindgen]
@@ -43,6 +45,7 @@ impl Contract {
             prev_distribution_time_in_sec: self.prev_distribution_time_in_sec,
             reward_genesis_time_in_sec: self.reward_genesis_time_in_sec,
             reward_per_sec: self.reward_per_sec.into(),
+            account_number: self.account_number,
         }
     }
 

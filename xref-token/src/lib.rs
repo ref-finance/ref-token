@@ -19,6 +19,7 @@ mod xref;
 mod utils;
 mod owner;
 mod views;
+mod storage_impl;
 
 near_sdk::setup_alloc!();
 
@@ -37,6 +38,8 @@ pub struct Contract {
     /// when would the reward starts to distribute
     pub reward_genesis_time_in_sec: u32,
     pub reward_per_sec: Balance,
+    /// current account number in contract
+    pub account_number: u64,
 }
 
 #[near_bindgen]
@@ -53,12 +56,12 @@ impl Contract {
             prev_distribution_time_in_sec: initial_reward_genisis_time,
             reward_genesis_time_in_sec: initial_reward_genisis_time,
             reward_per_sec: 0,
+            account_number: 0,
         }
     }
 }
 
 near_contract_standards::impl_fungible_token_core!(Contract, ft);
-near_contract_standards::impl_fungible_token_storage!(Contract, ft);
 
 #[near_bindgen]
 impl FungibleTokenMetadataProvider for Contract {

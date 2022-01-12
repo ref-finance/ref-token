@@ -51,19 +51,19 @@ fn test_reward(){
     //stake trigger distribute_reward
     call!(
         user,
-        ref_contract.ft_transfer_call(xref_contract.valid_account_id(), to_yocto("10").into(), None, "".to_string()),
+        ref_contract.ft_transfer_call(xref_contract.valid_account_id(), to_yocto("11").into(), None, "".to_string()),
         deposit = 1
     )
     .assert_success();
-    total_locked += to_yocto("10");
-    total_supply += to_yocto("10");
+    total_locked += to_yocto("11");
+    total_supply += to_yocto("11");
 
     let xref_info1 = view!(xref_contract.contract_metadata()).unwrap_json::<ContractMetadata>();
     let time_diff = xref_info1.prev_distribution_time_in_sec - xref_info0.prev_distribution_time_in_sec;
     total_reward -= time_diff as u128 * xref_info1.reward_per_sec.0;
     total_locked += time_diff as u128 * xref_info1.reward_per_sec.0;
     assert_xref(&xref_info1, total_reward, total_locked, total_supply);
-    assert_eq!(to_yocto("90"), view!(ref_contract.ft_balance_of(user.valid_account_id())).unwrap_json::<U128>().0);
+    assert_eq!(to_yocto("89"), view!(ref_contract.ft_balance_of(user.valid_account_id())).unwrap_json::<U128>().0);
 
     assert!(root.borrow_runtime_mut().produce_block().is_ok());
 
@@ -102,7 +102,7 @@ fn test_reward(){
     //nothing trigger distribute_reward
     let xref_info3 = view!(xref_contract.contract_metadata()).unwrap_json::<ContractMetadata>();
     assert_xref(&xref_info3, total_reward, total_locked, total_supply);
-    assert_eq!(to_yocto("90"), view!(ref_contract.ft_balance_of(user.valid_account_id())).unwrap_json::<U128>().0);
+    assert_eq!(to_yocto("89"), view!(ref_contract.ft_balance_of(user.valid_account_id())).unwrap_json::<U128>().0);
     
     //add reward trigger distribute_reward
     call!(
@@ -138,10 +138,9 @@ fn test_reward(){
     total_locked -= unlocked;
     total_supply -= to_yocto("10");
 
-    assert_eq!(0, total_locked);
-    assert_eq!(0, total_supply);
+    assert_eq!(to_yocto("1"), total_supply);
     assert_xref(&xref_info5, total_reward, total_locked, total_supply);
-    assert_eq!(to_yocto("90") + unlocked, view!(ref_contract.ft_balance_of(user.valid_account_id())).unwrap_json::<U128>().0);
+    assert_eq!(to_yocto("89") + unlocked, view!(ref_contract.ft_balance_of(user.valid_account_id())).unwrap_json::<U128>().0);
 
     assert!(root.borrow_runtime_mut().produce_blocks(1000).is_ok());
 
@@ -157,17 +156,17 @@ fn test_reward(){
     )
     .assert_success();
     
-    total_locked += to_yocto("10");
-    total_supply += to_yocto("10");
-
     let xref_info7 = view!(xref_contract.contract_metadata()).unwrap_json::<ContractMetadata>();
     let time_diff = xref_info7.prev_distribution_time_in_sec - xref_info6.prev_distribution_time_in_sec;
     assert!(total_reward < time_diff as u128 * xref_info7.reward_per_sec.0);
     total_locked += total_reward;
     total_reward -= total_reward;
+
+    total_supply += (U256::from(to_yocto("10")) * U256::from(total_supply) / U256::from(total_locked)).as_u128();
+    total_locked += to_yocto("10");
     
     assert_xref(&xref_info7, total_reward, total_locked, total_supply);
-    assert_eq!(to_yocto("80") + unlocked, view!(ref_contract.ft_balance_of(user.valid_account_id())).unwrap_json::<U128>().0);
+    assert_eq!(to_yocto("79") + unlocked, view!(ref_contract.ft_balance_of(user.valid_account_id())).unwrap_json::<U128>().0);
 
     //stake when total_locked contains reward
     call!(
@@ -182,7 +181,7 @@ fn test_reward(){
 
     let xref_info8 = view!(xref_contract.contract_metadata()).unwrap_json::<ContractMetadata>();
     assert_xref(&xref_info8, total_reward, total_locked, total_supply);
-    assert_eq!(to_yocto("70") + unlocked, view!(ref_contract.ft_balance_of(user.valid_account_id())).unwrap_json::<U128>().0);
+    assert_eq!(to_yocto("69") + unlocked, view!(ref_contract.ft_balance_of(user.valid_account_id())).unwrap_json::<U128>().0);
 }
 
 #[test]
