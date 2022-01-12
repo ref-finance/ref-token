@@ -67,30 +67,49 @@ near_contract_standards::impl_fungible_token_core!(Contract, ft);
 impl FungibleTokenMetadataProvider for Contract {
     fn ft_metadata(&self) -> FungibleTokenMetadata {
         let data_url = "data:image/svg+xml;base64,\
-        PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5l\
-        cmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDIxLjAuMCwgU1ZHIEV4cG9ydCBQbHVn\
-        LUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNp\
-        b249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8y\
-        MDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxp\
-        bmsiIHg9IjBweCIgeT0iMHB4IgoJIHZpZXdCb3g9IjAgMCAyODggMzI0IiBzdHls\
-        ZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCAyODggMzI0OyIgeG1sOnNwYWNl\
-        PSJwcmVzZXJ2ZSI+CjxzdHlsZSB0eXBlPSJ0ZXh0L2NzcyI+Cgkuc3Qwe2ZpbGw6\
-        IzAwQzA4Qjt9Cjwvc3R5bGU+CjxnPgoJPHBhdGggZD0iTTE3My40LDE5MS40VjI2\
-        OEgyNTBMMTczLjQsMTkxLjR6IE0xMDcuMiwxMjUuMmwzMCwzMGwzMC4zLTMwLjNW\
-        NjkuMmgtNjAuNFYxMjUuMnogTTEwNy4yLDE1Mi4zVjI2OGg2MC40VjE1MmwtMzAu\
-        MywzMC4zCgkJTDEwNy4yLDE1Mi4zeiBNMTc3LjEsNjkuMmgtMy43VjExOUwyMTIs\
-        ODAuNUMyMDEuOCw3My4yLDE4OS42LDY5LjIsMTc3LjEsNjkuMnogTTM4LDE3NS41\
-        VjI2OGg2My4zVjE0Ni40bC0xNy4xLTE3LjFMMzgsMTc1LjV6CgkJIE0zOCwxNDgu\
-        NWw0Ni4yLTQ2LjJsMTcuMSwxNy4xVjY5LjJIMzhWMTQ4LjV6IE0yMzYuOCwxMjgu\
-        OUwyMzYuOCwxMjguOWMwLTEyLjUtMy45LTI0LjctMTEuMi0zNC44bC01Mi4xLDUy\
-        djQyLjRoMy43CgkJQzIxMC4xLDE4OC41LDIzNi44LDE2MS44LDIzNi44LDEyOC45\
-        eiIvPgoJPHBvbHlnb24gY2xhc3M9InN0MCIgcG9pbnRzPSIyMTAuMiw1NiAyNTAs\
-        OTUuOCAyNTAsNTYgCSIvPgo8L2c+Cjwvc3ZnPgo=";
+        PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNjIiIHZpZXdCb3g9IjAgMCA1NiA2MiIg\
+        ZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4K\
+        PHBhdGggZD0iTTEuODU2OTMgMTcuODg1NkMxLjg1NjkzIDE2LjAyNzggMi44ODY5\
+        MiAxNC4zMjMyIDQuNTMxNTEgMTMuNDU5MkwyNS45MjE2IDIuMjIxNzJDMjcuMzc3\
+        NSAxLjQ1NjgzIDI5LjExNjUgMS40NTY4MyAzMC41NzI0IDIuMjIxNzJMNTEuOTYy\
+        NCAxMy40NTkyQzUzLjYwNyAxNC4zMjMyIDU0LjYzNyAxNi4wMjc4IDU0LjYzNyAx\
+        Ny44ODU2VjQ1LjYzMDRDNTQuNjM3IDQ3LjYwMjEgNTMuNDc4MiA0OS4zODk4IDUx\
+        LjY3ODMgNTAuMTk0N0wzMC4yODgyIDU5Ljc2MDZDMjguOTg5NCA2MC4zNDE0IDI3\
+        LjUwNDYgNjAuMzQxNSAyNi4yMDU3IDU5Ljc2MDZMNC44MTU3IDUwLjE5NDdDMy4w\
+        MTU3NCA0OS4zODk4IDEuODU2OTMgNDcuNjAyMSAxLjg1NjkzIDQ1LjYzMDRMMS44\
+        NTY5MyAxNy44ODU2WiIgZmlsbD0idXJsKCNwYWludDBfbGluZWFyXzEyNDYxXzIw\
+        NzUpIiBzdHJva2U9IiMwMEM2QTIiIHN0cm9rZS13aWR0aD0iMiIvPgo8cGF0aCBk\
+        PSJNMTMuNjk3OCAyMC4zMzJMMjguMjQ3MSAxNEwyOC4yMjAyIDMwLjU0MTdMMjAu\
+        MjgwMyAyMy43MTE2TDEyLjMxMzUgMzAuOTI5NVYyMi4zNjU0QzEyLjMxNTIgMjEu\
+        NDkyMiAxMi44NTM4IDIwLjY5OTMgMTMuNjk3OCAyMC4zMzJaIiBmaWxsPSIjMDBD\
+        NkEyIiBmaWxsLW9wYWNpdHk9IjAuNSIvPgo8cGF0aCBkPSJNMTQuMTAyMyA0Mi43\
+        NjQ1TDI4LjI0NzEgNDYuODYyNkwyOC4yMjAyIDM0LjU5NDRMMjAuMjc5NCAyNy45\
+        NDE0TDEyLjMxMzUgMzQuOTcyMlY0MC41Mjc0QzEyLjMxMzUgNDEuNTUxNSAxMy4w\
+        MzY3IDQyLjQ1NTkgMTQuMTAyMyA0Mi43NjQ1WiIgZmlsbD0iIzAwQzZBMiIgZmls\
+        bC1vcGFjaXR5PSIwLjUiLz4KPHBhdGggZD0iTTQzLjY0NDUgNDIuNzYzM0wyOC4y\
+        NzQ0IDQ2Ljg2MzJMMjguMjQ2OCAzNC41MTU3TDQzLjIyMSAyMi40NjQ4QzQzLjIy\
+        MSAyMi40NjQ4IDQ1Ljc5MyAyNC4zOTk2IDQ1LjAzNzMgMjcuODE5NkM0My43MDQ4\
+        IDMzLjg1MTEgMzUuMTc5NiAzNS45ODY5IDM1LjE3OTYgMzUuOTg2OUw0My45MDk2\
+        IDQxLjE1NjFDNDQuNjE1NSA0MS41NzggNDQuNDU1NCA0Mi41NDcgNDMuNjQ0NSA0\
+        Mi43NjMzWiIgZmlsbD0iIzQ1RkZERSIvPgo8cGF0aCBkPSJNMzguNTkwMyAxOC45\
+        NzkzTDI4LjI3MzQgMTRMMjguMjQ2OCAzMC40MzE1TDQwLjY5NSAyMC4zNTA5QzQw\
+        LjY5NSAyMC4zNTA5IDQwLjQyNzEgMjAuMDU5NyAzOS42OTAxIDE5LjU4MDVDMzku\
+        NDI4OSAxOS40MTE0IDM4LjU5MDMgMTguOTc5MyAzOC41OTAzIDE4Ljk3OTNaIiBm\
+        aWxsPSIjNDVGRkRFIi8+CjxwYXRoIGQ9Ik00MC41NTEgMTYuMDEwMUw0Ni42NjAy\
+        IDE4LjI4MDVDNDYuOTY3NSAxOC4zOTQzIDQ3LjE2OCAxOC42NjU2IDQ3LjE2OCAx\
+        OC45NjVWMjMuMTIwN0M0Ny4xNjggMjMuNDM4OCA0Ni43MjYgMjMuNTgyMiA0Ni41\
+        MDQyIDIzLjMzNDNMNDAuMjU1MyAxNi4zNjg3QzQwLjA4OTMgMTYuMTgzMSA0MC4z\
+        MDYyIDE1LjkxODEgNDAuNTUxIDE2LjAxMDFaIiBmaWxsPSIjNDVGRkRFIi8+Cjxk\
+        ZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9InBhaW50MF9saW5lYXJfMTI0NjFfMjA3\
+        NSIgeDE9IjI4LjI0NyIgeTE9IjEiIHgyPSIyOC4yNDciIHkyPSI2MC42NzM1IiBn\
+        cmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CjxzdG9wIHN0b3AtY29sb3I9\
+        IiMwMTEzMjAiLz4KPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMDAxMzIw\
+        Ii8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPC9zdmc+Cg==";
 
         FungibleTokenMetadata {
             spec: FT_METADATA_SPEC.to_string(),
-            name: String::from("X-Ref Finance Token"),
-            symbol: String::from("XREF"),
+            name: String::from("xRef Finance Token"),
+            symbol: String::from("xREF"),
             icon: Some(String::from(data_url)),
             reference: None,
             reference_hash: None,

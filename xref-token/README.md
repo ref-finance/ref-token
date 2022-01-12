@@ -56,6 +56,8 @@ pub struct ContractMetadata {
     pub reward_genesis_time_in_sec: u32,
     /// reward token amount per seconds
     pub reward_per_sec: U128,
+    /// XREF holders account number
+    pub account_number: u64,
 }
 ```
 
