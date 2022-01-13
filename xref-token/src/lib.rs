@@ -30,7 +30,7 @@ pub struct Contract {
     pub owner_id: AccountId,
     pub locked_token: AccountId,
     /// deposit reward that does not distribute to locked REF yet
-    pub undistribute_reward: Balance,
+    pub undistributed_reward: Balance,
     /// locked amount
     pub locked_token_amount: Balance,
     /// the previous distribution time in seconds
@@ -51,7 +51,7 @@ impl Contract {
             ft: FungibleToken::new(b"a".to_vec()),
             owner_id: owner_id.into(),
             locked_token: locked_token.into(),
-            undistribute_reward: 0,
+            undistributed_reward: 0,
             locked_token_amount: 0,
             prev_distribution_time_in_sec: initial_reward_genisis_time,
             reward_genesis_time_in_sec: initial_reward_genisis_time,

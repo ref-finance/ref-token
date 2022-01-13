@@ -26,7 +26,7 @@ impl Contract {
     }
 
     pub fn internal_add_reward(&mut self, account_id: &AccountId, amount: Balance) {
-        self.undistribute_reward += amount;
+        self.undistributed_reward += amount;
         log!("{} add {} assets as reward", account_id, amount);
     }
 
@@ -34,7 +34,7 @@ impl Contract {
     pub(crate) fn try_distribute_reward(&self, cur_timestamp_in_sec: u32) -> Balance {
         if cur_timestamp_in_sec > self.reward_genesis_time_in_sec && cur_timestamp_in_sec > self.prev_distribution_time_in_sec {
             let ideal_amount = self.reward_per_sec * (cur_timestamp_in_sec - self.prev_distribution_time_in_sec) as u128;
-            min(ideal_amount, self.undistribute_reward)
+            min(ideal_amount, self.undistributed_reward)
         } else {
             0
         }
@@ -44,7 +44,7 @@ impl Contract {
         let cur_time = nano_to_sec(env::block_timestamp());
         let new_reward = self.try_distribute_reward(cur_time);
         if new_reward > 0 {
-            self.undistribute_reward -= new_reward;
+            self.undistributed_reward -= new_reward;
             self.locked_token_amount += new_reward;
         }
         self.prev_distribution_time_in_sec = max(cur_time, self.reward_genesis_time_in_sec);

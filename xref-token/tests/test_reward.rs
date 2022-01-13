@@ -249,7 +249,7 @@ fn test_no_reward_befroe_reset_reward_genesis_time(){
     assert_xref(&xref_info3, total_reward, total_locked, total_supply);
     assert_eq!(to_yocto("80"), view!(ref_contract.ft_balance_of(user.valid_account_id())).unwrap_json::<U128>().0);
 
-    assert_eq!(xref_info3.undistribute_reward.0, to_yocto("100"));
+    assert_eq!(xref_info3.undistributed_reward.0, to_yocto("100"));
     assert_eq!(xref_info3.locked_token_amount.0, to_yocto("20"));
 
     assert!(root.borrow_runtime_mut().produce_blocks(10).is_ok());
@@ -277,6 +277,6 @@ fn test_no_reward_befroe_reset_reward_genesis_time(){
     assert_eq!(to_yocto("80") + unlocked, view!(ref_contract.ft_balance_of(user.valid_account_id())).unwrap_json::<U128>().0);
 
     assert_eq!(unlocked, to_yocto("10"));
-    assert_eq!(xref_info4.undistribute_reward.0, to_yocto("100"));
+    assert_eq!(xref_info4.undistributed_reward.0, to_yocto("100"));
     assert_eq!(xref_info4.locked_token_amount.0, to_yocto("10"));
 }

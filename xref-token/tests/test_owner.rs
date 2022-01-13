@@ -32,15 +32,15 @@ fn test_reset_reward_genesis_time(){
     let xref_info = view!(xref_contract.contract_metadata()).unwrap_json::<ContractMetadata>();
     assert_eq!(init_genesis_time, xref_info.reward_genesis_time_in_sec);
     assert_eq!(init_genesis_time, xref_info.prev_distribution_time_in_sec);
-    assert_eq!(U128(to_yocto("100")), xref_info.undistribute_reward);
+    assert_eq!(U128(to_yocto("100")), xref_info.undistributed_reward);
     assert_eq!(U128(to_yocto("1")), xref_info.reward_per_sec);
-    assert_eq!(U128(to_yocto("100")), xref_info.cur_undistribute_reward);
+    assert_eq!(U128(to_yocto("100")), xref_info.cur_undistributed_reward);
     assert_eq!(U128(to_yocto("0")), xref_info.cur_locked_token_amount);
 
     // and reward won't be distributed before genesis time
     root.borrow_runtime_mut().cur_block.block_timestamp = 100_000_000_000;
     let xref_info = view!(xref_contract.contract_metadata()).unwrap_json::<ContractMetadata>();
-    assert_eq!(U128(to_yocto("100")), xref_info.cur_undistribute_reward);
+    assert_eq!(U128(to_yocto("100")), xref_info.cur_undistributed_reward);
     assert_eq!(U128(to_yocto("0")), xref_info.cur_locked_token_amount);
 
     // and nothing happen even if some action invoke the reward distribution before genesis time
@@ -52,9 +52,9 @@ fn test_reset_reward_genesis_time(){
     let xref_info = view!(xref_contract.contract_metadata()).unwrap_json::<ContractMetadata>();
     assert_eq!(init_genesis_time, xref_info.reward_genesis_time_in_sec);
     assert_eq!(init_genesis_time, xref_info.prev_distribution_time_in_sec);
-    assert_eq!(U128(to_yocto("100")), xref_info.undistribute_reward);
+    assert_eq!(U128(to_yocto("100")), xref_info.undistributed_reward);
     assert_eq!(U128(to_yocto("0.5")), xref_info.reward_per_sec);
-    assert_eq!(U128(to_yocto("100")), xref_info.cur_undistribute_reward);
+    assert_eq!(U128(to_yocto("100")), xref_info.cur_undistributed_reward);
     assert_eq!(U128(to_yocto("0")), xref_info.cur_locked_token_amount);
     
     // change genesis time would also change prev_distribution_time_in_sec
@@ -66,15 +66,15 @@ fn test_reset_reward_genesis_time(){
     let xref_info = view!(xref_contract.contract_metadata()).unwrap_json::<ContractMetadata>();
     assert_eq!(xref_info.reward_genesis_time_in_sec, nano_to_sec(current_timestamp) + 50);
     assert_eq!(xref_info.prev_distribution_time_in_sec, nano_to_sec(current_timestamp) + 50);
-    assert_eq!(U128(to_yocto("100")), xref_info.undistribute_reward);
+    assert_eq!(U128(to_yocto("100")), xref_info.undistributed_reward);
     assert_eq!(U128(to_yocto("0.5")), xref_info.reward_per_sec);
-    assert_eq!(U128(to_yocto("100")), xref_info.cur_undistribute_reward);
+    assert_eq!(U128(to_yocto("100")), xref_info.cur_undistributed_reward);
     assert_eq!(U128(to_yocto("0")), xref_info.cur_locked_token_amount);
 
     // when it past genesis time
     root.borrow_runtime_mut().cur_block.block_timestamp = current_timestamp + 60_000_000_000;
     let xref_info = view!(xref_contract.contract_metadata()).unwrap_json::<ContractMetadata>();
-    assert_eq!(U128(to_yocto("95")), xref_info.cur_undistribute_reward);
+    assert_eq!(U128(to_yocto("95")), xref_info.cur_undistributed_reward);
     assert_eq!(U128(to_yocto("5")), xref_info.cur_locked_token_amount);
     // when some call invoke reward distribution after reward genesis time
     root.borrow_runtime_mut().cur_block.block_timestamp = current_timestamp + 70_000_000_000;
@@ -87,10 +87,10 @@ fn test_reset_reward_genesis_time(){
     let xref_info = view!(xref_contract.contract_metadata()).unwrap_json::<ContractMetadata>();
     assert_eq!(xref_info.reward_genesis_time_in_sec, nano_to_sec(current_timestamp) + 50);
     assert_eq!(xref_info.prev_distribution_time_in_sec, nano_to_sec(current_timestamp) + 71);
-    assert_eq!(U128(to_yocto("89.5")), xref_info.undistribute_reward);
+    assert_eq!(U128(to_yocto("89.5")), xref_info.undistributed_reward);
     assert_eq!(U128(to_yocto("10.5")), xref_info.locked_token_amount);
     assert_eq!(U128(to_yocto("1")), xref_info.reward_per_sec);
-    assert_eq!(U128(to_yocto("80.5")), xref_info.cur_undistribute_reward);
+    assert_eq!(U128(to_yocto("80.5")), xref_info.cur_undistributed_reward);
     assert_eq!(U128(to_yocto("19.5")), xref_info.cur_locked_token_amount);
 }
 

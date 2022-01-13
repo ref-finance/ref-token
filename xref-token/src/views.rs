@@ -11,11 +11,11 @@ pub struct ContractMetadata {
     pub owner_id: AccountId,
     pub locked_token: AccountId,
     // at prev_distribution_time, the amount of undistributed reward
-    pub undistribute_reward: U128,
+    pub undistributed_reward: U128,
     // at prev_distribution_time, the amount of staked token
     pub locked_token_amount: U128,
     // at call time, the amount of undistributed reward
-    pub cur_undistribute_reward: U128,
+    pub cur_undistributed_reward: U128,
     // at call time, the amount of staked token
     pub cur_locked_token_amount: U128,
     // cur XREF supply
@@ -37,9 +37,9 @@ impl Contract {
             version: env!("CARGO_PKG_VERSION").to_string(),
             owner_id: self.owner_id.clone(),
             locked_token: self.locked_token.clone(),
-            undistribute_reward: self.undistribute_reward.into(),
+            undistributed_reward: self.undistributed_reward.into(),
             locked_token_amount: self.locked_token_amount.into(),
-            cur_undistribute_reward: (self.undistribute_reward - to_be_distributed).into(),
+            cur_undistributed_reward: (self.undistributed_reward - to_be_distributed).into(),
             cur_locked_token_amount: (self.locked_token_amount + to_be_distributed).into(),
             supply: self.ft.total_supply.into(),
             prev_distribution_time_in_sec: self.prev_distribution_time_in_sec,

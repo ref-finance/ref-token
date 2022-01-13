@@ -14,7 +14,11 @@ impl StorageManagement for Contract {
         account_id: Option<ValidAccountId>,
         registration_only: Option<bool>,
     ) -> StorageBalance {
-        self.account_number += 1;
+        let local_account_id =
+            account_id.clone().map(|a| a.into()).unwrap_or_else(|| env::predecessor_account_id());
+        if !self.ft.accounts.contains_key(&local_account_id) {
+            self.account_number += 1;
+        }
         self.ft.storage_deposit(account_id, registration_only)
     }
 

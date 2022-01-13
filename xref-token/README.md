@@ -41,11 +41,11 @@ pub struct ContractMetadata {
     /// backend locked token id
     pub locked_token: AccountId,
     /// at prev_distribution_time, reward token that haven't distribute yet
-    pub undistribute_reward: U128,
+    pub undistributed_reward: U128,
     /// at prev_distribution_time, backend staked token amount
     pub locked_token_amount: U128,
     // at call time, the amount of undistributed reward
-    pub cur_undistribute_reward: U128,
+    pub cur_undistributed_reward: U128,
     // at call time, the amount of backend staked token
     pub cur_locked_token_amount: U128,
     /// XREF token supply
