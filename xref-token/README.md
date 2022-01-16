@@ -10,7 +10,9 @@ redeemed_REF = unstaked_XREF * P,
 where P = locked_REF_token_amount / XREF_total_supply. 
 
 * Anyone can add REF as reward for those locked REF users.  
-locked_REF_token amount would increase `reward_per_sec` per second.  
+locked_REF_token amount would increase `reward_per_sec` per second after `reward_genesis_time_in_sec`.  
+
+* Owner can modify `reward_genesis_time_in_sec` before it passed.
 
 * Owner can modify `reward_per_sec`.
 
@@ -38,16 +40,24 @@ pub struct ContractMetadata {
     pub owner_id: AccountId,
     /// backend locked token id
     pub locked_token: AccountId,
-    /// reward token that haven't distribute yet
-    pub undistribute_reward: U128,
-    /// backend locked token amount
+    /// at prev_distribution_time, reward token that haven't distribute yet
+    pub undistributed_reward: U128,
+    /// at prev_distribution_time, backend staked token amount
     pub locked_token_amount: U128,
+    // at call time, the amount of undistributed reward
+    pub cur_undistributed_reward: U128,
+    // at call time, the amount of backend staked token
+    pub cur_locked_token_amount: U128,
     /// XREF token supply
     pub supply: U128,
-    /// previous reward distribution time in nano secs
-    pub prev_distribution_time: u64,
+    /// previous reward distribution time in secs
+    pub prev_distribution_time_in_sec: u32,
+    /// reward start distribution time in secs
+    pub reward_genesis_time_in_sec: u32,
     /// reward token amount per seconds
     pub reward_per_sec: U128,
+    /// XREF holders account number
+    pub account_number: u64,
 }
 ```
 
@@ -73,6 +83,7 @@ export XREF_TOKEN=xref.token
 export XREF_OWNER=xref.owner
 near call $XREF_TOKEN new '{"owner_id": "'$XREF_OWNER'", "locked_token": "'$REF_TOKEN'"}' --account_id=$XREF_TOKEN
 ```
+Note: It would set the reward genesis time into 30 days from then on.
 
 ### Usage
 
@@ -80,7 +91,7 @@ near call $XREF_TOKEN new '{"owner_id": "'$XREF_OWNER'", "locked_token": "'$REF_
 ```bash
 # contract metadata gives contract details
 near view $XREF_TOKEN contract_metadata
-# get the X-REF / REF price in 1e8
+# get the REF / X-REF price in 1e8
 near view $XREF_TOKEN get_virtual_price
 
 # ************* from NEP-141 *************
@@ -114,7 +125,15 @@ near call $REF_TOKEN ft_transfer_call '{"receiver_id": "'$XREF_TOKEN'", "amount"
 near call $XREF_TOKEN unstake '{"amount": "8'$ZERO18'"}' --account_id=alice.testnet --amount=$YN --gas=$GAS100
 ```
 
+#### owner reset reward genesis time
+```bash
+# set to 2022-01-22 01:00:00 UTC time
+near call $XREF_TOKEN reset_reward_genesis_time_in_sec '{"reward_genesis_time_in_sec": 1642813200}' --account_id=$XREF_OWNER
+```
+Note: would return false if already past old genesis time or the new genesis time is a past time.
+
 #### owner modify reward_per_sec
 ```bash
-near call $XREF_TOKEN modify_reward_per_sec '{"reward_per_sec": "1'$ZERO18'"}' --account_id=$XREF_OWNER --gas=$GAS100
+near call $XREF_TOKEN modify_reward_per_sec '{"reward_per_sec": "1'$ZERO18'", "distribute_before_change": true}' --account_id=$XREF_OWNER --gas=$GAS100
 ```
+Note: If `distribute_before_change` is true, contract will sync up reward distribution using the old `reward_per_sec` at call time before changing to the new one.

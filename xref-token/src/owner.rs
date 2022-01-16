@@ -15,9 +15,24 @@ impl Contract {
         self.owner_id.clone()
     }
 
-    pub fn modify_reward_per_sec(&mut self, reward_per_sec: U128) {
+    pub fn modify_reward_per_sec(&mut self, reward_per_sec: U128, distribute_before_change: bool) {
         self.assert_owner();
+        if distribute_before_change {
+            self.distribute_reward();
+        }
         self.reward_per_sec = reward_per_sec.into();
+    }
+
+    pub fn reset_reward_genesis_time_in_sec(&mut self, reward_genesis_time_in_sec: u32) {
+        self.assert_owner();
+        let cur_time = nano_to_sec(env::block_timestamp());
+        if reward_genesis_time_in_sec < cur_time {
+            env::panic(b"ERR_RESET_TIME_IS_PAST_TIME");
+        } else if self.reward_genesis_time_in_sec < cur_time {
+            env::panic(b"ERR_REWARD_GENESIS_TIME_PASSED");
+        }
+        self.reward_genesis_time_in_sec = reward_genesis_time_in_sec;
+        self.prev_distribution_time_in_sec = reward_genesis_time_in_sec;
     }
 
     pub(crate) fn assert_owner(&self) {

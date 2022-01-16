@@ -5,7 +5,7 @@ use near_contract_standards::fungible_token::receiver::FungibleTokenReceiver;
 use near_contract_standards::fungible_token::core_impl::ext_fungible_token;
 use near_sdk::json_types::U128;
 use near_sdk::{assert_one_yocto, env, log, Promise, PromiseResult};
-use std::cmp::min;
+use std::cmp::{max, min};
 
 impl Contract {
     pub fn internal_stake(&mut self, account_id: &AccountId, amount: Balance) {
@@ -26,23 +26,28 @@ impl Contract {
     }
 
     pub fn internal_add_reward(&mut self, account_id: &AccountId, amount: Balance) {
-        self.undistribute_reward += amount;
+        self.undistributed_reward += amount;
         log!("{} add {} assets as reward", account_id, amount);
     }
 
     /// return the amount of to be distribute reward this time
-    pub(crate) fn try_distribute_reward(&self, cur_timestamp: Timestamp) -> Balance {
-        assert!(cur_timestamp >= self.prev_distribution_time, "Err: cur time less than prev time");
-        let ideal_amount = self.reward_per_sec * (nano_to_sec(cur_timestamp) - nano_to_sec(self.prev_distribution_time)) as u128;
-        min(ideal_amount, self.undistribute_reward)
+    pub(crate) fn try_distribute_reward(&self, cur_timestamp_in_sec: u32) -> Balance {
+        if cur_timestamp_in_sec > self.reward_genesis_time_in_sec && cur_timestamp_in_sec > self.prev_distribution_time_in_sec {
+            let ideal_amount = self.reward_per_sec * (cur_timestamp_in_sec - self.prev_distribution_time_in_sec) as u128;
+            min(ideal_amount, self.undistributed_reward)
+        } else {
+            0
+        }
     }
 
     pub(crate) fn distribute_reward(&mut self) {
-        let cur_time = env::block_timestamp();
+        let cur_time = nano_to_sec(env::block_timestamp());
         let new_reward = self.try_distribute_reward(cur_time);
-        self.undistribute_reward -= new_reward;
-        self.locked_token_amount += new_reward;
-        self.prev_distribution_time = cur_time;
+        if new_reward > 0 {
+            self.undistributed_reward -= new_reward;
+            self.locked_token_amount += new_reward;
+        }
+        self.prev_distribution_time_in_sec = max(cur_time, self.reward_genesis_time_in_sec);
     }
 }
 
@@ -69,6 +74,7 @@ impl Contract {
         let unlocked = (U256::from(amount) * U256::from(self.locked_token_amount) / U256::from(self.ft.total_supply)).as_u128();
 
         self.ft.internal_withdraw(&account_id, amount);
+        assert!(self.ft.total_supply >= 10u128.pow(18), "ERR_KEEP_AT_LEAST_ONE_XREF");
         self.locked_token_amount -= unlocked;
 
         log!("Withdraw {} NEAR from {}", amount, account_id);
