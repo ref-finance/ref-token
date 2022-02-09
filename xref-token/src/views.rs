@@ -33,6 +33,7 @@ impl Contract {
     pub fn contract_metadata(&self) -> ContractMetadata {
         let to_be_distributed =
             self.try_distribute_reward(nano_to_sec(env::block_timestamp()));
+        // only update version number here
         ContractMetadata {
             version: env!("CARGO_PKG_VERSION").to_string(),
             owner_id: self.owner_id.clone(),
