@@ -2,10 +2,10 @@
 
 ### Compiling
 
-You can build release version by running next scripts inside each contract folder:
+You can build release version by running:
 
 ```
-source ./build_docker.sh
+source ./docker_build.sh
 ```
 
 ### Deploying to TestNet

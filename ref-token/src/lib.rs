@@ -43,26 +43,7 @@ near_contract_standards::impl_fungible_token_storage!(Contract, ft);
 #[near_bindgen]
 impl FungibleTokenMetadataProvider for Contract {
     fn ft_metadata(&self) -> FungibleTokenMetadata {
-        let data_url = "data:image/svg+xml;base64,\
-        PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5l\
-        cmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDIxLjAuMCwgU1ZHIEV4cG9ydCBQbHVn\
-        LUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNp\
-        b249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8y\
-        MDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxp\
-        bmsiIHg9IjBweCIgeT0iMHB4IgoJIHZpZXdCb3g9IjAgMCAyODggMzI0IiBzdHls\
-        ZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCAyODggMzI0OyIgeG1sOnNwYWNl\
-        PSJwcmVzZXJ2ZSI+CjxzdHlsZSB0eXBlPSJ0ZXh0L2NzcyI+Cgkuc3Qwe2ZpbGw6\
-        IzAwQzA4Qjt9Cjwvc3R5bGU+CjxnPgoJPHBhdGggZD0iTTE3My40LDE5MS40VjI2\
-        OEgyNTBMMTczLjQsMTkxLjR6IE0xMDcuMiwxMjUuMmwzMCwzMGwzMC4zLTMwLjNW\
-        NjkuMmgtNjAuNFYxMjUuMnogTTEwNy4yLDE1Mi4zVjI2OGg2MC40VjE1MmwtMzAu\
-        MywzMC4zCgkJTDEwNy4yLDE1Mi4zeiBNMTc3LjEsNjkuMmgtMy43VjExOUwyMTIs\
-        ODAuNUMyMDEuOCw3My4yLDE4OS42LDY5LjIsMTc3LjEsNjkuMnogTTM4LDE3NS41\
-        VjI2OGg2My4zVjE0Ni40bC0xNy4xLTE3LjFMMzgsMTc1LjV6CgkJIE0zOCwxNDgu\
-        NWw0Ni4yLTQ2LjJsMTcuMSwxNy4xVjY5LjJIMzhWMTQ4LjV6IE0yMzYuOCwxMjgu\
-        OUwyMzYuOCwxMjguOWMwLTEyLjUtMy45LTI0LjctMTEuMi0zNC44bC01Mi4xLDUy\
-        djQyLjRoMy43CgkJQzIxMC4xLDE4OC41LDIzNi44LDE2MS44LDIzNi44LDEyOC45\
-        eiIvPgoJPHBvbHlnb24gY2xhc3M9InN0MCIgcG9pbnRzPSIyMTAuMiw1NiAyNTAs\
-        OTUuOCAyNTAsNTYgCSIvPgo8L2c+Cjwvc3ZnPgo=";
+        let data_url = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='16 24 248 248' style='background: %23000'%3E%3Cpath d='M164,164v52h52Zm-45-45,20.4,20.4,20.6-20.6V81H119Zm0,18.39V216h41V137.19l-20.6,20.6ZM166.5,81H164v33.81l26.16-26.17A40.29,40.29,0,0,0,166.5,81ZM72,153.19V216h43V133.4l-11.6-11.61Zm0-18.38,31.4-31.4L115,115V81H72ZM207,121.5h0a40.29,40.29,0,0,0-7.64-23.66L164,133.19V162h2.5A40.5,40.5,0,0,0,207,121.5Z' fill='%23fff'/%3E%3Cpath d='M189 72l27 27V72h-27z' fill='%2300c08b'/%3E%3C/svg%3E%0A";
 
         FungibleTokenMetadata {
             spec: FT_METADATA_SPEC.to_string(),
