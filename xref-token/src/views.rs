@@ -1,6 +1,7 @@
 //! View functions for the contract.
 
 use crate::*;
+#[allow(unused_imports)]
 use near_sdk::serde::{Deserialize, Serialize};
 
 #[derive(Serialize)]
