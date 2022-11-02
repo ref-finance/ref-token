@@ -21,5 +21,5 @@ neardev
 
 .DS_Store
 
-res/ref_token_local.wasm
-res/xref_token_local.wasm
+# WASM files to be released
+/res/
