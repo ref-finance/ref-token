@@ -1,6 +1,15 @@
 # Release Notes
 
+### Version 1.0.3
+```bash=
+# codehash: 5g2CDRuEV1s3UpVfuaNgGiiX4vwHaaLBwZ7ygnePDPPE 
+```
+1. add ft_mint and ft_burn event;
+
 ### Version 1.0.2
+```bash=
+# codehash: ErUzfYKkbsiZtKWf9JKV1UvztNZvXjoFpdzB6wvB8vjX 
+```
 1. add account counter;
 2. change token icon;
 

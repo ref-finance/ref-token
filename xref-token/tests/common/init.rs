@@ -3,8 +3,8 @@ use test_token::ContractContract as TestToken;
 use xref_token::ContractContract as XRefToken;
 
 near_sdk_sim::lazy_static_include::lazy_static_include_bytes! {
-    TEST_WASM_BYTES => "../res/test_token.wasm",
-    XREF_WASM_BYTES => "../res/xref_token_release.wasm",
+    TEST_WASM_BYTES => "../releases/test_token.wasm",
+    XREF_WASM_BYTES => "../releases/xref_token_release.wasm",
 }
 
 pub fn init_env(register_user: bool) -> (UserAccount, UserAccount, UserAccount, ContractAccount<TestToken>, ContractAccount<XRefToken>){

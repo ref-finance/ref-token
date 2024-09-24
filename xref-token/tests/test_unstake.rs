@@ -25,12 +25,14 @@ fn test_unstake(){
     assert_xref(&current_xref_info, 0, to_yocto("10"), to_yocto("10"));
     assert_eq!(100000000_u128, view!(xref_contract.get_virtual_price()).unwrap_json::<U128>().0);
 
-    call!(
+    let outcome = call!(
         user,
         xref_contract.unstake(to_yocto("9").into()),
         deposit = 1
-    )
-    .assert_success();
+    );
+    outcome.assert_success();
+    let logs = outcome.promise_results()[5].as_ref().unwrap().logs().clone();
+    assert_eq!(logs[0], r#"EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_burn","data":[{"owner_id":"user","amount":"9000000000000000000000000"}]}"#);
 
     assert_eq!(to_yocto("99"), view!(ref_contract.ft_balance_of(user.valid_account_id())).unwrap_json::<U128>().0);
     let current_xref_info = view!(xref_contract.contract_metadata()).unwrap_json::<ContractMetadata>();

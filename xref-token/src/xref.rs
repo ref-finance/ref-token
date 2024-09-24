@@ -23,6 +23,7 @@ impl Contract {
         self.locked_token_amount += amount;
         self.ft.internal_deposit(account_id, minted);
         log!("{} Stake {} assets, get {} token", account_id, amount, minted);
+        events::Event::FtMint { owner_id: &account_id, amount: minted.into(), memo: None }.emit();
     }
 
     pub fn internal_add_reward(&mut self, account_id: &AccountId, amount: Balance) {
@@ -77,7 +78,7 @@ impl Contract {
         assert!(self.ft.total_supply >= 10u128.pow(18), "ERR_KEEP_AT_LEAST_ONE_XREF");
         self.locked_token_amount -= unlocked;
 
-        log!("Withdraw {} NEAR from {}", amount, account_id);
+        log!("Withdraw {} XRef from {}", amount, account_id);
 
         ext_fungible_token::ft_transfer(
             account_id.clone(),
@@ -111,7 +112,9 @@ impl Contract {
         );
         match env::promise_result(0) {
             PromiseResult::NotReady => unreachable!(),
-            PromiseResult::Successful(_) => {}
+            PromiseResult::Successful(_) => {
+                events::Event::FtBurn { owner_id: &sender_id, amount: share, memo: None }.emit();
+            }
             PromiseResult::Failed => {
                 // This reverts the changes from unstake function.
                 // If account doesn't exit, the unlock token stay in contract.

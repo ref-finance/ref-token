@@ -15,6 +15,7 @@ use crate::utils::DURATION_30DAYS_IN_SEC;
 pub use crate::utils::nano_to_sec;
 pub use crate::views::ContractMetadata;
 
+mod events;
 mod xref;
 mod utils;
 mod owner;

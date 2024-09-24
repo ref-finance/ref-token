@@ -4,8 +4,8 @@ use near_sdk_sim::{deploy, view, init_simulator, to_yocto};
 use xref_token::{ContractContract as Xref, ContractMetadata};
 
 near_sdk_sim::lazy_static_include::lazy_static_include_bytes! {
-    PREV_XREF_WASM_BYTES => "../res/xref_token_release.wasm",
-    XREF_WASM_BYTES => "../res/xref_token_release.wasm",
+    PREV_XREF_WASM_BYTES => "../releases/xref_token_release_V1.0.2.wasm",
+    XREF_WASM_BYTES => "../releases/xref_token_release.wasm",
 }
 
 #[test]
@@ -19,6 +19,8 @@ fn test_upgrade() {
         signer_account: root,
         init_method: new(root.valid_account_id(), root.valid_account_id())
     );
+    let metadata = view!(xref.contract_metadata()).unwrap_json::<ContractMetadata>();
+    assert_eq!(metadata.version, "1.0.2".to_string());
     // Failed upgrade with no permissions.
     let result = test_user
         .call(
@@ -41,7 +43,7 @@ fn test_upgrade() {
     .assert_success();
     let metadata = view!(xref.contract_metadata()).unwrap_json::<ContractMetadata>();
     // println!("{:#?}", metadata);
-    assert_eq!(metadata.version, "1.0.2".to_string());
+    assert_eq!(metadata.version, "1.0.3".to_string());
 
     // Upgrade to the same code migration is skipped.
     root.call(

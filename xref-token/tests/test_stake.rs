@@ -13,12 +13,14 @@ fn test_stake(){
     let (_, _, user, ref_contract, xref_contract) = 
         init_env(true);
 
-    call!(
+    let outcome = call!(
         user,
         ref_contract.ft_transfer_call(xref_contract.valid_account_id(), to_yocto("10").into(), None, "".to_string()),
         deposit = 1
-    )
-    .assert_success();
+    );
+    outcome.assert_success();
+    let logs = outcome.promise_results()[2].as_ref().unwrap().logs().clone();
+    assert_eq!(logs[1], r#"EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_mint","data":[{"owner_id":"user","amount":"10000000000000000000000000"}]}"#);
 
     let current_xref_info = view!(xref_contract.contract_metadata()).unwrap_json::<ContractMetadata>();
     assert_xref(&current_xref_info, 0, to_yocto("10"), to_yocto("10"));

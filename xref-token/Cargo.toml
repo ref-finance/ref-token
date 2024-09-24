@@ -1,6 +1,6 @@
 [package]
 name = "xref-token"
-version = "1.0.2"
+version = "1.0.3"
 authors = ["Marco <sun.dsk1@gmail.com>"]
 edition = "2018"
 
